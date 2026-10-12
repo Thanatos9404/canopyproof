@@ -1,22 +1,24 @@
-// Off-chain helpers mirroring fieldproof/merkle.py and fieldproof/records.py, so the
+// Off-chain helpers mirroring canopyproof/merkle.py and fieldproof/records.py, so the
 // Solidity side is tested against exactly the same leaf and tree construction.
 const { ethers } = require("hardhat");
 
 const coder = ethers.AbiCoder.defaultAbiCoder();
-const OBS_TYPES = ["bytes32", "uint64", "int32", "int32", "uint32", "int32", "int32", "int32", "uint8", "uint8", "bytes32"];
-const FLAGS = { CLEAR: 1, VCI: 2, RAIN: 4, Z: 8, CROP: 16 };
+const OBS_TYPES = ["bytes32", "bytes32", "uint64", "int32", "int32", "uint32", "uint32", "uint32", "uint32", "uint32", "uint8", "uint8", "bytes32"];
+const FLAGS = { CLEAR: 1, BASELINE: 2, ML: 4, BASELINE_PERIOD: 8 };
 
 function obsTuple(o) {
   return [
-    o.plotKey,
+    o.siteKey,
+    o.projectKey,
     o.observedAt,
     o.ndviE4,
-    o.ndmiE4,
+    o.nbrE4,
     o.validFractionBps,
-    o.vciBps,
-    o.ndviZE2,
-    o.rainDeparture60dBps,
-    o.stressLevel,
+    o.disturbedBps,
+    o.persistentBps,
+    o.burnBps,
+    o.cumulativeLossBps,
+    o.status,
     o.flags,
     o.documentHash,
   ];
@@ -61,16 +63,18 @@ let counter = 0;
 function makeObs(overrides = {}) {
   counter += 1;
   return {
-    plotKey: ethers.id("plot-A"),
+    siteKey: ethers.id("site-A"),
+    projectKey: ethers.id("project-A"),
     observedAt: 1_690_000_000 + counter * 432_000,
-    ndviE4: 3120,
-    ndmiE4: -450,
+    ndviE4: 7800,
+    nbrE4: 5200,
     validFractionBps: 9500,
-    vciBps: 2100,
-    ndviZE2: -150,
-    rainDeparture60dBps: -4500,
-    stressLevel: 3,
-    flags: FLAGS.CLEAR | FLAGS.VCI | FLAGS.RAIN | FLAGS.Z | FLAGS.CROP,
+    disturbedBps: 50,
+    persistentBps: 0,
+    burnBps: 0,
+    cumulativeLossBps: 0,
+    status: 1,
+    flags: FLAGS.CLEAR | FLAGS.BASELINE,
     documentHash: ethers.id(`document-${counter}`),
     ...overrides,
   };

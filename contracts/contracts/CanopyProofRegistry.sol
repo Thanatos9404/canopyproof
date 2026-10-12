@@ -6,16 +6,15 @@ import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {MerkleProof} from "@openzeppelin/contracts/utils/cryptography/MerkleProof.sol";
 
-/// @title FieldProofRegistry
-/// @notice Anchors the Merkle roots of batches of content-hashed, signed field observation
-///         records (Sentinel-2 vegetation indices + ERA5 rainfall context for smallholder plots).
-///         Anyone can later prove that a single record belongs to an anchored batch.
-/// @dev    Records stay off-chain. Each leaf commits to a small set of fixed-point numbers that a
-///         contract can reason about, plus `documentHash`, the keccak256 of the full canonical
-///         JSON record. Leaves use the OpenZeppelin "double hash" convention and sorted-pair
-///         Merkle trees, so proofs verify with `MerkleProof`.
-///         Plot coordinates never go on-chain: plots are identified by a salted commitment.
-contract FieldProofRegistry is AccessControl, EIP712 {
+/// @title CanopyProofRegistry
+/// @notice Anchors the Merkle roots of batches of content-hashed, signed forest observation records
+///         (Sentinel-2 change detection over carbon-project monitoring cells). Anyone can later prove
+///         that a single record belongs to an anchored batch.
+/// @dev    Records stay off-chain. Each leaf commits to the fixed-point change metrics a contract can
+///         reason about, plus `documentHash`, the keccak256 of the full canonical JSON record. Leaves use
+///         the OpenZeppelin "double hash" convention and sorted-pair Merkle trees (MerkleProof).
+///         Monitoring cells are identified by salted commitments, not coordinates.
+contract CanopyProofRegistry is AccessControl, EIP712 {
     /// @notice Role allowed to anchor batches (the data pipeline operator / oracle key).
     bytes32 public constant ATTESTOR_ROLE = keccak256("ATTESTOR_ROLE");
 
@@ -25,11 +24,10 @@ contract FieldProofRegistry is AccessControl, EIP712 {
     );
 
     /// @notice Bit flags carried in every observation leaf.
-    uint8 public constant FLAG_QUALITY_CLEAR = 1; // enough cloud-free pixels inside the plot
-    uint8 public constant FLAG_VCI_AVAILABLE = 2; // multi-year Vegetation Condition Index computed
-    uint8 public constant FLAG_RAIN_AVAILABLE = 4; // 60-day rainfall departure computed
-    uint8 public constant FLAG_ZSCORE_AVAILABLE = 8; // NDVI seasonal-model z-score computed
-    uint8 public constant FLAG_CROP_EXPECTED = 16; // a crop is normally present on this date
+    uint8 public constant FLAG_CLEAR = 1; // enough cloud-free pixels in the cell
+    uint8 public constant FLAG_BASELINE_READY = 2; // a pre-issuance forest baseline exists and was compared
+    uint8 public constant FLAG_ML_UNUSUAL = 4; // advisory Isolation Forest flag (not used by contracts)
+    uint8 public constant FLAG_BASELINE_PERIOD = 8; // acquisition falls inside the baseline period
 
     struct BatchInput {
         bytes32 merkleRoot;
@@ -52,18 +50,19 @@ contract FieldProofRegistry is AccessControl, EIP712 {
         string uri;
     }
 
-    /// @notice Values committed in every leaf. Decimals are fixed-point integers:
-    ///         E4 = value x 10^4, Bps = value x 10^4 of a fraction (percent x 100).
+    /// @notice Values committed in every leaf. Fractions are basis points (1/10000) of forest pixels.
     struct Observation {
-        bytes32 plotKey; // salted commitment to the plot geometry
-        uint64 observedAt; // satellite acquisition time, unix seconds
-        int32 ndviE4; // mean NDVI over valid pixels x 10^4
-        int32 ndmiE4; // mean NDMI over valid pixels x 10^4
-        uint32 validFractionBps; // share of plot pixels that were cloud-free vegetation/soil
-        int32 vciBps; // Vegetation Condition Index (0..10000) when FLAG_VCI_AVAILABLE
-        int32 ndviZE2; // NDVI departure from the plot's seasonal model, robust z x 100
-        int32 rainDeparture60dBps; // 60-day rainfall departure from 1991-2020 normal (-10000 = no rain)
-        uint8 stressLevel; // 0 insufficient data, 1 normal, 2 watch, 3 alert
+        bytes32 siteKey; // salted commitment to the monitoring cell
+        bytes32 projectKey; // keccak256 of the public registry project id
+        uint64 observedAt; // Sentinel-2 acquisition time, unix seconds
+        int32 ndviE4; // mean NDVI x 10^4
+        int32 nbrE4; // mean Normalized Burn Ratio x 10^4
+        uint32 validFractionBps; // share of the cell that was cloud-free land
+        uint32 disturbedBps; // visible forest pixels changed sharply vs the baseline
+        uint32 persistentBps; // ... and also in the previous clear look
+        uint32 burnBps; // visible forest pixels with a burn-like signal
+        uint32 cumulativeLossBps; // baseline forest with confirmed (2-look) loss so far
+        uint8 status; // off-chain label: 0 insufficient, 1 healthy, 2 watch, 3 reversal suspected
         uint8 flags;
         bytes32 documentHash; // keccak256(canonical JSON record)
     }
@@ -99,7 +98,7 @@ contract FieldProofRegistry is AccessControl, EIP712 {
     error NotAuthorized();
     error InvalidSignature(address recovered);
 
-    constructor(address admin) EIP712("FieldProofRegistry", "1") {
+    constructor(address admin) EIP712("CanopyProofRegistry", "1") {
         if (admin == address(0)) revert ZeroAddress();
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
     }

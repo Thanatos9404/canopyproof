@@ -1,8 +1,8 @@
 {
-  "name": "fieldproof-contracts",
+  "name": "canopyproof-contracts",
   "version": "0.1.0",
   "private": true,
-  "description": "Smart contracts for Krishyak FieldProof: Merkle-anchored field climate records and a prototype parametric drought trigger.",
+  "description": "Smart contracts for CanopyProof: Merkle-anchored forest observation records, a carbon-credit integrity oracle and an example guarded credit ledger.",
   "license": "MIT",
   "scripts": {
     "compile": "hardhat compile",

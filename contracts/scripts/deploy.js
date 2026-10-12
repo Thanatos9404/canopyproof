@@ -1,4 +1,4 @@
-// Deploys FieldProofRegistry + ParametricDroughtTrigger and writes ../data/chain/<network>.json,
+// Deploys CanopyProofRegistry, CarbonIntegrityOracle and GuardedCreditLedger and writes ../data/chain/<network>.json,
 // the file the Python pipeline and the dashboard read.
 //
 //   npx hardhat run scripts/deploy.js --network localhost   (after `npx hardhat node`)
@@ -24,22 +24,26 @@ async function main() {
   // Local chain: separate well-known Hardhat dev accounts for each role (public test accounts, no value).
   // Testnet: the deployer holds every role unless ATTESTOR_ADDRESS / PROGRAM_ADMIN_ADDRESS are set.
   const attestor = isLocal ? signers[1].address : process.env.ATTESTOR_ADDRESS || deployer.address;
-  const programAdmin = isLocal ? signers[3].address : process.env.PROGRAM_ADMIN_ADDRESS || deployer.address;
+  const registrar = isLocal ? signers[3].address : process.env.REGISTRAR_ADDRESS || deployer.address;
+  const auditor = isLocal ? signers[5].address : process.env.AUDITOR_ADDRESS || deployer.address;
 
   const balance = await ethers.provider.getBalance(deployer.address);
   console.log(`network=${network.name} chainId=${chainId} deployer=${deployer.address} balance=${ethers.formatEther(balance)}`);
 
-  const Registry = await ethers.getContractFactory("FieldProofRegistry");
+  const Registry = await ethers.getContractFactory("CanopyProofRegistry");
   const registry = await Registry.deploy(deployer.address);
   await registry.waitForDeployment();
   const registryReceipt = await registry.deploymentTransaction().wait();
 
-  const Trigger = await ethers.getContractFactory("ParametricDroughtTrigger");
-  const trigger = await Trigger.deploy(await registry.getAddress(), deployer.address);
-  await trigger.waitForDeployment();
+  const oracle = await (await ethers.getContractFactory("CarbonIntegrityOracle")).deploy(await registry.getAddress(), deployer.address);
+  await oracle.waitForDeployment();
+  const ledger = await (await ethers.getContractFactory("GuardedCreditLedger")).deploy(await oracle.getAddress(), deployer.address);
+  await ledger.waitForDeployment();
 
   await (await registry.grantRole(await registry.ATTESTOR_ROLE(), attestor)).wait();
-  await (await trigger.grantRole(await trigger.PROGRAM_ADMIN_ROLE(), programAdmin)).wait();
+  await (await oracle.grantRole(await oracle.REGISTRAR_ROLE(), registrar)).wait();
+  await (await oracle.grantRole(await oracle.AUDITOR_ROLE(), auditor)).wait();
+  await (await ledger.grantRole(await ledger.ISSUER_ROLE(), registrar)).wait();
 
   const artifact = (name) => hre.artifacts.readArtifactSync(name);
   const out = {
@@ -49,18 +53,19 @@ async function main() {
     explorer: { 11155111: "https://sepolia.etherscan.io", 80002: "https://amoy.polygonscan.com" }[chainId] || null,
     deployedAt: new Date().toISOString(),
     deployBlock: registryReceipt.blockNumber,
-    roles: { admin: deployer.address, attestor, programAdmin },
+    roles: { admin: deployer.address, attestor, registrar, auditor },
+    accounts: isLocal ? { relayer: signers[2].address, watchdog: signers[4].address, buyer: signers[6].address } : {},
     contracts: {
-      FieldProofRegistry: { address: await registry.getAddress(), abi: artifact("FieldProofRegistry").abi },
-      ParametricDroughtTrigger: { address: await trigger.getAddress(), abi: artifact("ParametricDroughtTrigger").abi },
+      CanopyProofRegistry: { address: await registry.getAddress(), abi: artifact("CanopyProofRegistry").abi },
+      CarbonIntegrityOracle: { address: await oracle.getAddress(), abi: artifact("CarbonIntegrityOracle").abi },
+      GuardedCreditLedger: { address: await ledger.getAddress(), abi: artifact("GuardedCreditLedger").abi },
     },
   };
   const dir = path.resolve(__dirname, "..", "..", "data", "chain");
   fs.mkdirSync(dir, { recursive: true });
   const file = path.join(dir, `${out.network}.json`);
   fs.writeFileSync(file, JSON.stringify(out, null, 2));
-  console.log(`FieldProofRegistry       ${out.contracts.FieldProofRegistry.address}`);
-  console.log(`ParametricDroughtTrigger ${out.contracts.ParametricDroughtTrigger.address}`);
+  for (const [name, c] of Object.entries(out.contracts)) console.log(`${name.padEnd(22)} ${c.address}`);
   console.log(`wrote ${path.relative(process.cwd(), file)}`);
 }
 

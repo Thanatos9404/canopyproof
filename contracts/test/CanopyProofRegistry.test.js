@@ -3,10 +3,10 @@ const { ethers } = require("hardhat");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers");
 const { leafOf, buildTree, proofFor, makeObs, batchInput } = require("./helpers");
 
-describe("FieldProofRegistry", function () {
+describe("CanopyProofRegistry", function () {
   async function deployFixture() {
     const [admin, attestor, relayer, stranger] = await ethers.getSigners();
-    const Registry = await ethers.getContractFactory("FieldProofRegistry");
+    const Registry = await ethers.getContractFactory("CanopyProofRegistry");
     const registry = await Registry.deploy(admin.address);
     await registry.grantRole(await registry.ATTESTOR_ROLE(), attestor.address);
 
@@ -18,7 +18,7 @@ describe("FieldProofRegistry", function () {
   async function signBatch(registry, signer, input, nonce) {
     const { chainId } = await ethers.provider.getNetwork();
     const domain = {
-      name: "FieldProofRegistry",
+      name: "CanopyProofRegistry",
       version: "1",
       chainId,
       verifyingContract: await registry.getAddress(),
@@ -48,7 +48,7 @@ describe("FieldProofRegistry", function () {
     });
 
     it("rejects a zero admin", async function () {
-      const Registry = await ethers.getContractFactory("FieldProofRegistry");
+      const Registry = await ethers.getContractFactory("CanopyProofRegistry");
       await expect(Registry.deploy(ethers.ZeroAddress)).to.be.revertedWithCustomError(Registry, "ZeroAddress");
     });
   });
