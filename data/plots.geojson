@@ -1,0 +1,167 @@
+{
+  "type": "FeatureCollection",
+  "name": "fieldproof-sample-plots",
+  "description": "Public sample plots for the Krishyak FieldProof demo. Salts are public demo values; real deployments keep the salt with the farmer.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "plot_id": "IN-PB-LDH-01",
+        "name": "Ludhiana sample plot",
+        "district": "Ludhiana",
+        "state": "Punjab",
+        "country": "IN",
+        "regional_context": "Irrigated double-cropping region (rice in kharif and wheat in rabi are typical). Useful as a contrast: irrigation buffers rainfall deficits.",
+        "boundary_note": "Approximate polygon drawn over cropland visible in Sentinel-2 imagery for this demo. Not a registered farmer field; the crop grown is not verified.",
+        "salt": "0x3bb71666ca1f8cbb776ac5e8c1e52e848627935a06c50e9f69b2858fa1c49959"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.598293,
+              30.801757
+            ],
+            [
+              75.599495,
+              30.801752
+            ],
+            [
+              75.599489,
+              30.800804
+            ],
+            [
+              75.598287,
+              30.80081
+            ],
+            [
+              75.598293,
+              30.801757
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "plot_id": "IN-RJ-KTP-01",
+        "name": "Kotputli sample plot",
+        "district": "Kotputli-Behror (formerly Jaipur)",
+        "state": "Rajasthan",
+        "country": "IN",
+        "regional_context": "Semi-arid north-east Rajasthan. Kharif crops are mostly rainfed (pearl millet is typical); rabi wheat or mustard relies on groundwater.",
+        "boundary_note": "Approximate polygon drawn over cropland visible in Sentinel-2 imagery for this demo. Not a registered farmer field; the crop grown is not verified.",
+        "salt": "0xc4652067b3c0eac32d7e67785eff32c88c9fb1f6ae7d4e26802b0ed721cd4a4d"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.146899,
+              27.623393
+            ],
+            [
+              76.147913,
+              27.623385
+            ],
+            [
+              76.147905,
+              27.622663
+            ],
+            [
+              76.146892,
+              27.622671
+            ],
+            [
+              76.146899,
+              27.623393
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "plot_id": "IN-MH-LTR-01",
+        "name": "Latur sample plot",
+        "district": "Latur",
+        "state": "Maharashtra",
+        "country": "IN",
+        "regional_context": "Marathwada: drought-prone and largely rainfed (soybean and pigeon pea are typical kharif crops).",
+        "boundary_note": "Approximate polygon drawn over cropland visible in Sentinel-2 imagery for this demo. Not a registered farmer field; the crop grown is not verified.",
+        "salt": "0xf8360c453f9cceabc01a0d4f6a11f22e24a4ef0933eac24379a7ae1277f35e3f"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              76.620799,
+              18.429768
+            ],
+            [
+              76.62184,
+              18.429759
+            ],
+            [
+              76.621825,
+              18.428132
+            ],
+            [
+              76.620784,
+              18.428141
+            ],
+            [
+              76.620799,
+              18.429768
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "plot_id": "IN-AP-ATP-01",
+        "name": "Anantapur sample plot",
+        "district": "Anantapuramu",
+        "state": "Andhra Pradesh",
+        "country": "IN",
+        "regional_context": "One of India's most drought-prone districts; rainfed groundnut is the typical kharif crop.",
+        "boundary_note": "Approximate polygon drawn over cropland visible in Sentinel-2 imagery for this demo. Not a registered farmer field; the crop grown is not verified.",
+        "salt": "0x3e033f7abec17ac6ab3d9c757f947bc8a10397ad717de5d2f11dffa4d3d03280"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              77.559159,
+              14.754764
+            ],
+            [
+              77.559948,
+              14.754756
+            ],
+            [
+              77.559934,
+              14.753581
+            ],
+            [
+              77.559145,
+              14.75359
+            ],
+            [
+              77.559159,
+              14.754764
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}
