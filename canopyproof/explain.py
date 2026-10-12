@@ -129,5 +129,6 @@ def explain(series_doc, use_llm=False, log=print):
             "source_record": facts["record_id"],
             "created_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
     NOTES_DIR.mkdir(parents=True, exist_ok=True)
-    (NOTES_DIR / f"{series_doc['site_id']}.json").write_text(json.dumps(note, indent=1) + "\n", encoding="utf-8")
+    (NOTES_DIR / f"{series_doc['site_id']}.json").write_text(json.dumps(note, indent=1) + "\n", encoding="utf-8", newline="
+")
     return note

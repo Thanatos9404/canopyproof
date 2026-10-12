@@ -90,7 +90,8 @@ def validate_site(site, observations_doc, summary, log=print):
         "canopyproof_confirmed_ha_by_first_year": {y: round(v, 2) for y, v in years_ours.items()},
     }
     VALIDATION_DIR.mkdir(parents=True, exist_ok=True)
-    (VALIDATION_DIR / f"{site['site_id']}.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
+    (VALIDATION_DIR / f"{site['site_id']}.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8", newline="
+")
     log(f"  [{site['site_id']}] Hansen check: {considered} px, Hansen loss {theirs}, ours {ours}, agree {both} "
         f"(precision {out['precision']}, recall {out['recall']})")
     return out
@@ -125,5 +126,6 @@ def change_map(site, observations_doc, summary, out_dir, colour=(180, 83, 42)):
             "confirmed_pixels": int(lost.sum()), "forest_pixels": int(forest.sum()),
             "first_confirmed_by_year": {str(y): int(sum(1 for d in first[lost] if d.startswith(str(y))))
                                         for y in range(2019, 2027)}}
-    png.with_suffix(".json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8")
+    png.with_suffix(".json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8", newline="
+")
     return meta

@@ -35,3 +35,4 @@ data/programs/localhost.json
 Thumbs.db
 .idea/
 .vscode/
+data/integrity/localhost.json

@@ -376,7 +376,8 @@ def fetch_site(site, start, end, workers=8, max_cloud=70, history_per_month=3, r
         "observations": observations,
     }
     OBSERVATIONS_DIR.mkdir(parents=True, exist_ok=True)
-    observations_path(site["site_id"]).write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
+    observations_path(site["site_id"]).write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8", newline="
+")
     save_rasters(site["site_id"], rasters)
     clear = sum(1 for o in observations if o["quality"]["status"] == "clear")
     log(f"  saved {len(observations)} acquisitions ({clear} clear), {failures} failed reads")
@@ -416,5 +417,6 @@ def make_chip(site, item, pad_m=300, name=None):
     meta = {"site_id": site["site_id"], "item_id": item["id"], "date": item["properties"]["datetime"][:10],
             "bounds": [[lats[0], lons[0]], [lats[1], lons[1]]],
             "attribution": "Contains modified Copernicus Sentinel data"}
-    png.with_suffix(".json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8")
+    png.with_suffix(".json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8", newline="
+")
     return meta
