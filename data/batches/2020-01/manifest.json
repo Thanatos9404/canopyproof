@@ -1,0 +1,54 @@
+{
+ "schema": "canopyproof.batch/1",
+ "batch_name": "2020-01",
+ "period_start": "2020-01-03T19:12:29Z",
+ "period_end": "2020-01-27T14:04:22Z",
+ "period_start_unix": 1578078749,
+ "period_end_unix": 1580133862,
+ "record_count": 5,
+ "merkle_root": "0x6fee87ba5b6ac8ef269bc075e8e739ec6eb7b9291401e446cae6179ebbe7fab1",
+ "leaf_encoding": "keccak256(bytes.concat(keccak256(abi.encode(CanopyProofRegistry.Observation))))",
+ "tree": "sorted leaves, sorted-pair keccak256, odd node promoted (OpenZeppelin MerkleProof compatible)",
+ "leaves": [
+  "0x01c4851fccde5dbff0faacc1526e39bdf5ea47f97d67d0731dbe80ba87d8c87d",
+  "0x2880060f14a02a923162643f2ab58b5545bb9fa846fc6b26c9212d9981017f3a",
+  "0x38e658b40e03791512bbbbdcc5942eb0aeed6399eee6eb135a7334431af67da5",
+  "0x5fce76ef99f3bdceb31abc9565ee5166534824570cffd9008884e31fbcba5a3d",
+  "0xcda83210624407cd7bc70aeffa96ad88620ecef65b2fda1c2647f213c132551c"
+ ],
+ "records": [
+  {
+   "record_id": "KE-FIRE-01:S2B_T10TFN_20200103T190800_L2A",
+   "document_hash": "0xcf4361d5026b0d4c10dc8c0b475018e55ec2f3b37f5d471e48ca3fa17fcc8979",
+   "leaf": "0x2880060f14a02a923162643f2ab58b5545bb9fa846fc6b26c9212d9981017f3a"
+  },
+  {
+   "record_id": "KE-STAND-01:S2B_T10TFM_20200103T190800_L2A",
+   "document_hash": "0x8de6430dbc66b7ecc73851a77eb7ef37c8ad86fc8ba4626ec057aa0aebe8bf99",
+   "leaf": "0x01c4851fccde5dbff0faacc1526e39bdf5ea47f97d67d0731dbe80ba87d8c87d"
+  },
+  {
+   "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20200107T140047_L2A",
+   "document_hash": "0x7b0e93fae223f8d892ed01564364f65144e93801fc31dceb92bc85676a7aa4be",
+   "leaf": "0xcda83210624407cd7bc70aeffa96ad88620ecef65b2fda1c2647f213c132551c"
+  },
+  {
+   "record_id": "KE-STAND-01:S2A_T10TFM_20200118T190900_L2A",
+   "document_hash": "0x2692b8fdcad3427f0440f2e47d1e86df90f7c100ce2ef173d1e3a38759cede51",
+   "leaf": "0x5fce76ef99f3bdceb31abc9565ee5166534824570cffd9008884e31fbcba5a3d"
+  },
+  {
+   "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20200127T135637_L2A",
+   "document_hash": "0xb47f1c82e3b93eeda9a4ea59db9aef06b8cc92c11f1d7a9ce3f0038f7e653364",
+   "leaf": "0x38e658b40e03791512bbbbdcc5942eb0aeed6399eee6eb135a7334431af67da5"
+  }
+ ],
+ "sites": [
+  "AMZ-FRONTIER-01",
+  "KE-FIRE-01",
+  "KE-STAND-01"
+ ],
+ "processing_version": "canopyproof-s2-v1",
+ "analytics_version": "canopyproof-change-v1",
+ "software": "canopyproof 0.2.0"
+}

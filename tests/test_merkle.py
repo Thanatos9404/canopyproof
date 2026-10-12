@@ -3,7 +3,7 @@ import random
 import pytest
 from eth_hash.auto import keccak
 
-from fieldproof.merkle import MerkleTree, hash_pair, verify
+from canopyproof.merkle import MerkleTree, hash_pair, verify
 
 
 def leaves(n, seed=1):

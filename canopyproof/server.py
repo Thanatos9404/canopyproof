@@ -40,29 +40,28 @@ def _safe_child(base: Path, rel: str):
     return target
 
 
+ID = r"[A-Za-z0-9_.:-]+"
 ROUTES = [
     (re.compile(r"^/api/health$"), lambda q: {"ok": True, "version": api.__version__}),
     (re.compile(r"^/api/endpoints$"), lambda q: api.ENDPOINTS),
     (re.compile(r"^/api/state$"), lambda q: api.state()),
-    (re.compile(r"^/api/plots$"), lambda q: api.plots()),
-    (re.compile(r"^/api/plots/(?P<plot_id>[A-Z0-9-]+)$"), lambda q, plot_id: api.plot_detail(plot_id)),
-    (re.compile(r"^/api/plots/(?P<plot_id>[A-Z0-9-]+)/notes$"),
-     lambda q, plot_id: api.note(plot_id, q.get("lang", "en") if q.get("lang") in ("en", "hi") else "en")),
+    (re.compile(r"^/api/sites$"), lambda q: api.sites()),
+    (re.compile(rf"^/api/sites/(?P<site_id>{ID})$"), lambda q, site_id: api.site_detail(site_id)),
+    (re.compile(r"^/api/projects$"), lambda q: api.projects()),
+    (re.compile(r"^/api/integrity$"), lambda q: api.integrity(q.get("network"))),
     (re.compile(r"^/api/batches$"), lambda q: api.batches(q.get("network"))),
     (re.compile(r"^/api/batches/(?P<name>\d{4}-\d{2})$"), lambda q, name: api.batch_detail(name, q.get("network"))),
-    (re.compile(r"^/api/records/(?P<record_id>[A-Za-z0-9_:.-]+)$"),
-     lambda q, record_id: api.record(record_id, q.get("network"))),
-    (re.compile(r"^/api/verify/(?P<record_id>[A-Za-z0-9_:.-]+)$"),
+    (re.compile(rf"^/api/records/(?P<record_id>{ID})$"), lambda q, record_id: api.record(record_id, q.get("network"))),
+    (re.compile(rf"^/api/verify/(?P<record_id>{ID})$"),
      lambda q, record_id: api.verify(record_id, q.get("network"), tamper=q.get("tamper"),
                                      offline=q.get("offline") == "1", recompute=q.get("recompute") == "1")),
     (re.compile(r"^/api/chain$"), lambda q: api.chain_status(q.get("network"))),
     (re.compile(r"^/api/contracts$"), lambda q: api.contracts_info(q.get("network"))),
-    (re.compile(r"^/api/programs$"), lambda q: api.programs(q.get("network"), q.get("plot"))),
 ]
 
 
 class Handler(BaseHTTPRequestHandler):
-    server_version = "FieldProof/0.1"
+    server_version = "CanopyProof/0.2"
 
     def log_message(self, fmt, *args):
         if getattr(self.server, "verbose", False):
@@ -135,7 +134,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def _web(self, path):
         if not (WEB_DIST / "index.html").exists():
-            body = ("<!doctype html><meta charset=utf-8><title>Krishyak FieldProof API</title>"
+            body = ("<!doctype html><meta charset=utf-8><title>CanopyProof API</title>"
                     "<p>The API is running. Build the web app with <code>cd web &amp;&amp; npm install &amp;&amp; "
                     "npm run build</code>, or open <a href=/api/endpoints>/api/endpoints</a>.</p>").encode()
             return self._send(200, body, "text/html; charset=utf-8")
@@ -188,7 +187,7 @@ class AppServer(ThreadingHTTPServer):
 
 def serve(port=8080, verbose=False, log=print):
     server = AppServer(("127.0.0.1", port), verbose=verbose)
-    log(f"Krishyak FieldProof on http://127.0.0.1:{port}  (API: /api/endpoints; Ctrl+C to stop)")
+    log(f"CanopyProof on http://127.0.0.1:{port}  (API: /api/endpoints; Ctrl+C to stop)")
     try:
         server.serve_forever()
     except KeyboardInterrupt:

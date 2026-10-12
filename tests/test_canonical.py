@@ -2,7 +2,7 @@ import math
 
 import pytest
 
-from fieldproof.canonical import CanonicalError, canonical_bytes, dec, document_hash, fixed_int
+from canopyproof.canonical import CanonicalError, canonical_bytes, dec, document_hash, fixed_int
 
 
 def test_sorted_compact_ascii():

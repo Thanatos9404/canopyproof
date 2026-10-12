@@ -1,0 +1,16 @@
+{
+ "site_id": "KE-STAND-01",
+ "item_id": "S2B_T10TFM_20261008T190756_L2A",
+ "date": "2026-10-08",
+ "bounds": [
+  [
+   42.380841812255575,
+   -121.6459381541906
+  ],
+  [
+   42.395104763108314,
+   -121.62607025765047
+  ]
+ ],
+ "attribution": "Contains modified Copernicus Sentinel data"
+}

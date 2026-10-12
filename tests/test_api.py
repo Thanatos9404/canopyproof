@@ -1,35 +1,39 @@
 """JSON API over the committed sample data (offline; no chain needed)."""
 import json
 import threading
+import urllib.error
 import urllib.request
 
 import pytest
 
-from fieldproof import api
-from fieldproof.config import SERIES_DIR
+from canopyproof import api
+from canopyproof.config import SERIES_DIR
 
-pytestmark = pytest.mark.skipif(not (SERIES_DIR / "IN-AP-ATP-01.json").exists(),
-                                reason="sample data not built (python -m fieldproof build)")
-
-
-def a_record_id():
-    rows = json.loads((SERIES_DIR / "IN-AP-ATP-01.json").read_text(encoding="utf-8"))["series"]
-    return next(r["record_id"] for r in reversed(rows) if r["clear"])
+pytestmark = pytest.mark.skipif(not (SERIES_DIR / "KE-FIRE-01.json").exists(),
+                                reason="sample data not built (python -m canopyproof build)")
 
 
-def test_plots_and_detail():
-    plots = api.plots()["plots"]
-    assert {p["plot_id"] for p in plots} == {"IN-PB-LDH-01", "IN-RJ-KTP-01", "IN-MH-LTR-01", "IN-AP-ATP-01"}
-    detail = api.plot_detail("IN-AP-ATP-01")
-    assert detail["series"] and detail["latest_clear"]["clear"]
+def a_record_id(status="reversal_suspected"):
+    rows = json.loads((SERIES_DIR / "KE-FIRE-01.json").read_text(encoding="utf-8"))["series"]
+    return next(r["record_id"] for r in reversed(rows) if r["status"] == status)
+
+
+def test_sites_projects_and_detail():
+    sites = api.sites()["sites"]
+    assert {s["site_id"] for s in sites} >= {"KE-FIRE-01", "KE-STAND-01", "ACR189-01"}
+    fire = next(s for s in sites if s["site_id"] == "KE-FIRE-01")
+    assert fire["latest"]["status"] == "reversal_suspected" and fire["first_reversal"]["date"].startswith("2021-")
+    detail = api.site_detail("KE-FIRE-01")
+    assert detail["series"] and detail["project"]["project_id"] == "ACR273"
+    assert {p["project_id"] for p in api.projects()["projects"]} == {"ACR273", "ACR189", "DEMO-AMZ"}
     with pytest.raises(api.NotFound):
-        api.plot_detail("NOPE-00")
+        api.site_detail("NOPE-00")
 
 
 def test_record_payload_is_self_contained():
-    from fieldproof.canonical import document_hash
-    from fieldproof.merkle import verify
-    from fieldproof.records import leaf_fields, leaf_hash
+    from canopyproof.canonical import document_hash
+    from canopyproof.merkle import verify
+    from canopyproof.records import leaf_fields, leaf_hash
 
     rec = api.record(a_record_id(), network="sepolia")  # a network with no anchor: anchor is None
     assert rec["anchor"] is None
@@ -41,13 +45,13 @@ def test_record_payload_is_self_contained():
 def test_offline_verification_and_tamper():
     rid = a_record_id()
     assert api.verify(rid, offline=True)["verified"] is True
-    assert api.verify(rid, offline=True, tamper="ndvi=0.9999")["verified"] is False
+    assert api.verify(rid, offline=True, tamper="loss=0.0000")["verified"] is False
     with pytest.raises(api.NotFound):
-        api.verify("IN-AP-ATP-01:missing", offline=True)
+        api.verify("KE-FIRE-01:missing", offline=True)
 
 
 def test_http_server_routes_and_read_only_proxy():
-    from fieldproof.server import AppServer
+    from canopyproof.server import AppServer
 
     server = AppServer(("127.0.0.1", 0))
     port = server.server_address[1]
@@ -58,8 +62,8 @@ def test_http_server_routes_and_read_only_proxy():
                 return r.status, json.loads(r.read())
 
         assert get("/api/health")[1]["ok"] is True
-        assert get("/api/plots")[0] == 200
-        for path in ("/api/plots/NOPE", "/data/../.env"):
+        assert get("/api/sites")[0] == 200
+        for path in ("/api/sites/NOPE", "/data/../.env"):
             with pytest.raises(urllib.error.HTTPError) as err:
                 urllib.request.urlopen(f"http://127.0.0.1:{port}{path}")
             assert err.value.code in (403, 404)

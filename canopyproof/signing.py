@@ -32,7 +32,7 @@ def batch_typed_data(chain_id, registry, batch_input, nonce):
     return {
         "types": {"EIP712Domain": DOMAIN_TYPES, "Batch": BATCH_TYPES},
         "primaryType": "Batch",
-        "domain": {"name": "FieldProofRegistry", "version": "1", "chainId": chain_id, "verifyingContract": registry},
+        "domain": {"name": "CanopyProofRegistry", "version": "1", "chainId": chain_id, "verifyingContract": registry},
         "message": {**batch_input, "nonce": nonce},
     }
 

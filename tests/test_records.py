@@ -1,32 +1,29 @@
 import json
 
-from fieldproof.analytics import analyze
-from fieldproof.canonical import canonical_bytes, document_hash
-from fieldproof.merkle import verify
-from fieldproof.records import (
-    FLAG_CROP_EXPECTED, FLAG_QUALITY_CLEAR, FLAG_RAIN_AVAILABLE, FLAG_VCI_AVAILABLE, FLAG_ZSCORE_AVAILABLE,
-    build_batches, build_document, encode_leaf_fields, leaf_fields, leaf_hash)
-from synthetic import PLOT, Weather, observations
+from canopyproof.canonical import canonical_bytes, document_hash
+from canopyproof.forest import analyze_site
+from canopyproof.merkle import verify
+from canopyproof.records import (FLAG_BASELINE_READY, FLAG_CLEAR, build_batches, build_document, encode_leaf_fields,
+                                 leaf_fields, leaf_hash)
+from synthetic import BASELINE, MONTHS, SITE, scenes
 
 
 def documents():
-    obs = observations(start=__import__("datetime").date(2019, 1, 3))
-    return [build_document(PLOT, o, a) for o, a in zip(obs, analyze(obs, Weather()))]
+    obs, rasters = scenes()
+    res, _ = analyze_site(obs, rasters, *BASELINE, monitoring_months=MONTHS)
+    return [build_document(SITE, o, a) for o, a in zip(obs, res)]
 
 
 def test_documents_are_canonical_and_leaves_follow_the_document():
     docs = documents()
-    alert = next(d for d in docs if d["analytics"]["stress_level"] == "alert")
-    canonical_bytes(alert)  # raises if any float or non-ASCII value slipped in
-    f = leaf_fields(alert)
-    assert f["documentHash"] == document_hash(alert)
-    assert f["stressLevel"] == 3
-    assert f["flags"] & FLAG_QUALITY_CLEAR and f["flags"] & FLAG_RAIN_AVAILABLE
-    assert f["flags"] & FLAG_ZSCORE_AVAILABLE and f["flags"] & FLAG_CROP_EXPECTED
-    assert bool(f["flags"] & FLAG_VCI_AVAILABLE) == (alert["analytics"]["vci_pct"] is not None)
-    assert f["ndviE4"] == round(float(alert["indices"]["ndvi"]["mean"]) * 10_000)
-    assert f["rainDeparture60dBps"] == -5000
-    assert len(encode_leaf_fields(f)) == 11 * 32
+    rev = next(d for d in docs if d["change"]["status"] == "reversal_suspected")
+    canonical_bytes(rev)  # raises if any float or non-ASCII value slipped in
+    f = leaf_fields(rev)
+    assert f["documentHash"] == document_hash(rev)
+    assert f["status"] == 3 and f["flags"] & FLAG_CLEAR and f["flags"] & FLAG_BASELINE_READY
+    assert f["cumulativeLossBps"] == 5000 and f["siteKey"] == SITE["site_key"] and f["projectKey"] == SITE["project_key"]
+    assert f["ndviE4"] == round(float(rev["indices"]["ndvi"]["mean"]) * 10_000)
+    assert len(encode_leaf_fields(f)) == 13 * 32
 
 
 def test_any_edit_changes_the_leaf():

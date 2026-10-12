@@ -1,8 +1,8 @@
 """Observation records, their on-chain leaves, and monthly Merkle batches.
 
 A record is a canonical JSON document (see canonical.py). Its keccak256 is the `documentHash`.
-The leaf anchored on-chain commits to that hash plus a few fixed-point numbers that a smart
-contract can check directly (FieldProofRegistry.Observation):
+The leaf anchored on-chain commits to that hash plus the fixed-point numbers the integrity contract
+checks directly (CanopyProofRegistry.Observation):
 
     leaf = keccak256(bytes.concat(keccak256(abi.encode(Observation))))
 
@@ -17,29 +17,30 @@ from eth_abi import encode as abi_encode
 from eth_hash.auto import keccak
 
 from . import ANALYTICS_VERSION, BATCH_SCHEMA, PROCESSING_VERSION, RECORD_SCHEMA, __version__
-from .analytics import LIMITATIONS
 from .canonical import canonical_bytes, document_hash, fixed_int
 from .config import BATCHES_DIR, S2_COLLECTION, STAC_API
+from .forest import LIMITATIONS
 from .merkle import MerkleTree
+from .sentinel import METHOD
 
-OBS_TYPES = ["bytes32", "uint64", "int32", "int32", "uint32", "int32", "int32", "int32", "uint8", "uint8", "bytes32"]
-OBS_FIELDS = ["plotKey", "observedAt", "ndviE4", "ndmiE4", "validFractionBps", "vciBps", "ndviZE2",
-              "rainDeparture60dBps", "stressLevel", "flags", "documentHash"]
-FLAG_QUALITY_CLEAR, FLAG_VCI_AVAILABLE, FLAG_RAIN_AVAILABLE, FLAG_ZSCORE_AVAILABLE, FLAG_CROP_EXPECTED = 1, 2, 4, 8, 16
+OBS_TYPES = ["bytes32", "bytes32", "uint64", "int32", "int32", "uint32", "uint32", "uint32", "uint32", "uint32",
+             "uint8", "uint8", "bytes32"]
+OBS_FIELDS = ["siteKey", "projectKey", "observedAt", "ndviE4", "nbrE4", "validFractionBps", "disturbedBps",
+              "persistentBps", "burnBps", "cumulativeLossBps", "status", "flags", "documentHash"]
+FLAG_CLEAR, FLAG_BASELINE_READY, FLAG_ML_UNUSUAL, FLAG_BASELINE_PERIOD = 1, 2, 4, 8
 
 
-def build_document(plot, obs, analysis):
-    wx = analysis["weather"]
-    weather = {"status": wx.get("status"), "provider": "Open-Meteo / ERA5 (ECMWF, Copernicus C3S)"}
-    weather.update({k: v for k, v in wx.items() if k != "status"})
+def build_document(site, obs, analysis):
     return {
         "schema": RECORD_SCHEMA,
-        "record_id": f"{plot['plot_id']}:{obs['item_id']}",
-        "plot": {
-            "plot_id": plot["plot_id"],
-            "plot_key": plot["plot_key"],
-            "geometry_hash": plot["geometry_hash"],
-            "area_ha": plot["area_ha"],
+        "record_id": f"{site['site_id']}:{obs['item_id']}",
+        "site": {
+            "site_id": site["site_id"],
+            "site_key": site["site_key"],
+            "geometry_hash": site["geometry_hash"],
+            "area_ha": site["area_ha"],
+            "project_id": site["project_id"],
+            "project_key": site["project_key"],
         },
         "observed_at": obs["observed_at"],
         "observed_unix": obs["observed_unix"],
@@ -57,49 +58,37 @@ def build_document(plot, obs, analysis):
             "assets": obs["assets"],
             "reflectance_scale_offset": obs["reflectance_scale_offset"],
         },
-        "processing": {
-            "version": PROCESSING_VERSION,
-            "ndvi": "(B08-B04)/(B08+B04), 10 m",
-            "ndmi": "(B08-B11)/(B08+B11), 20 m, B08 averaged 2x2",
-            "valid_scl_classes": [4, 5],
-            "min_valid_fraction": "0.60",
-            "grid": obs["grid"],
-            "pixel_digest": obs["pixel_digest"],
-        },
+        "processing": {**METHOD, "grid": obs["grid"], "pixel_digest": obs["pixel_digest"]},
         "quality": obs["quality"],
-        "indices": {"ndvi": obs["ndvi"], "ndmi": obs["ndmi"]},
-        "weather": weather,
-        "analytics": {k: v for k, v in analysis.items() if k != "weather"},
+        "indices": {"ndvi": obs["ndvi"], "nbr": obs["nbr"]},
+        "change": analysis,
         "limitations": LIMITATIONS,
-        "software": {"name": "fieldproof", "version": __version__, "analytics_version": ANALYTICS_VERSION},
+        "software": {"name": "canopyproof", "version": __version__, "analytics_version": ANALYTICS_VERSION},
     }
 
 
 def leaf_fields(doc):
-    """Fixed-point values for FieldProofRegistry.Observation, derived only from the document."""
-    analytics = doc["analytics"]
-    weather = doc["weather"]
-    clear = doc["quality"]["status"] == "clear"
-    vci = analytics.get("vci_pct")
-    z = analytics.get("ndvi_residual_z")
-    dep = weather.get("rain_60d_departure_pct") if weather.get("status") == "available" else None
-    flags = ((FLAG_QUALITY_CLEAR if clear else 0)
-             | (FLAG_VCI_AVAILABLE if vci is not None else 0)
-             | (FLAG_RAIN_AVAILABLE if dep is not None else 0)
-             | (FLAG_ZSCORE_AVAILABLE if z is not None else 0)
-             | (FLAG_CROP_EXPECTED if analytics.get("crop_expected") else 0))
-    ndvi = doc["indices"]["ndvi"]
-    ndmi = doc["indices"]["ndmi"]
+    """Fixed-point values for CanopyProofRegistry.Observation, derived only from the document."""
+    ch = doc["change"]
+    measured = ch["cumulative_loss_fraction"] is not None
+    flags = ((FLAG_CLEAR if doc["quality"]["status"] == "clear" else 0)
+             | (FLAG_BASELINE_READY if measured else 0)
+             | (FLAG_ML_UNUSUAL if (ch["isolation_forest"] or {}).get("advisory_flag") else 0)
+             | (FLAG_BASELINE_PERIOD if ch["in_baseline_period"] else 0))
+    ndvi, nbr = doc["indices"]["ndvi"], doc["indices"]["nbr"]
+    bps = ch["fractions_bps"]
     return {
-        "plotKey": doc["plot"]["plot_key"],
+        "siteKey": doc["site"]["site_key"],
+        "projectKey": doc["site"]["project_key"],
         "observedAt": doc["observed_unix"],
         "ndviE4": fixed_int(ndvi["mean"]) if ndvi else 0,
-        "ndmiE4": fixed_int(ndmi["mean"]) if ndmi else 0,
+        "nbrE4": fixed_int(nbr["mean"]) if nbr else 0,
         "validFractionBps": fixed_int(doc["quality"]["valid_fraction"]),
-        "vciBps": fixed_int(vci, 100) if vci is not None else 0,
-        "ndviZE2": fixed_int(z, 100) if z is not None else 0,
-        "rainDeparture60dBps": fixed_int(dep, 100) if dep is not None else 0,
-        "stressLevel": analytics["stress_code"],
+        "disturbedBps": bps["disturbed"] if measured else 0,
+        "persistentBps": bps["persistent"] if measured else 0,
+        "burnBps": bps["burn"] if measured else 0,
+        "cumulativeLossBps": bps["cumulative"] if measured else 0,
+        "status": ch["status_code"],
         "flags": flags,
         "documentHash": document_hash(doc),
     }
@@ -109,11 +98,12 @@ def _b32(h):
     return bytes.fromhex(h[2:])
 
 
+def _values(fields):
+    return [_b32(fields[k]) if t == "bytes32" else fields[k] for k, t in zip(OBS_FIELDS, OBS_TYPES)]
+
+
 def encode_leaf_fields(fields):
-    values = [fields[k] for k in OBS_FIELDS]
-    values[0] = _b32(values[0])
-    values[-1] = _b32(values[-1])
-    return abi_encode(OBS_TYPES, values)
+    return abi_encode(OBS_TYPES, _values(fields))
 
 
 def leaf_hash(fields):
@@ -122,10 +112,7 @@ def leaf_hash(fields):
 
 def observation_tuple(fields):
     """Argument for web3 contract calls taking an Observation struct."""
-    values = [fields[k] for k in OBS_FIELDS]
-    values[0] = _b32(values[0])
-    values[-1] = _b32(values[-1])
-    return tuple(values)
+    return tuple(_values(fields))
 
 
 # ----------------------------------------------------------------------------- batches
@@ -160,15 +147,15 @@ def build_batches(documents, out_dir=BATCHES_DIR, log=print):
             "period_end_unix": docs[-1]["observed_unix"],
             "record_count": len(entries),
             "merkle_root": tree.root,
-            "leaf_encoding": "keccak256(bytes.concat(keccak256(abi.encode(FieldProofRegistry.Observation))))",
+            "leaf_encoding": "keccak256(bytes.concat(keccak256(abi.encode(CanopyProofRegistry.Observation))))",
             "tree": "sorted leaves, sorted-pair keccak256, odd node promoted (OpenZeppelin MerkleProof compatible)",
             "leaves": tree.leaves,
             "records": [{"record_id": e["record_id"], "document_hash": e["document_hash"], "leaf": e["leaf"]}
                         for e in entries],
-            "plots": sorted({d["plot"]["plot_id"] for d in docs}),
+            "sites": sorted({d["site"]["site_id"] for d in docs}),
             "processing_version": PROCESSING_VERSION,
             "analytics_version": ANALYTICS_VERSION,
-            "software": f"fieldproof {__version__}",
+            "software": f"canopyproof {__version__}",
         }
         manifest_hash = "0x" + keccak(canonical_bytes(manifest)).hex()
         batch_dir = out_dir / period
@@ -202,7 +189,7 @@ def find_entry(record_id):
 
     series = SERIES_DIR / f"{record_id.split(':', 1)[0]}.json"
     candidates = []
-    if series.exists():  # fast path: the per-plot series knows each record's batch
+    if series.exists():  # fast path: the per-site series knows each record's batch
         rows = json.loads(series.read_text(encoding="utf-8"))["series"]
         candidates = [r["batch"] for r in rows if r["record_id"] == record_id]
     if not candidates:

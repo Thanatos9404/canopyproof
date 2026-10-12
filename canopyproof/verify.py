@@ -25,21 +25,20 @@ class Report:
 
 
 def apply_tamper(document, tamper):
-    """`tamper` like 'ndvi=0.8123' or 'vci=80' edits the document to show that verification fails."""
+    """`tamper` like 'loss=0.0000' or 'ndvi=0.8123' edits a local copy to show that verification fails."""
     doc = copy.deepcopy(document)
     key, _, value = tamper.partition("=")
-    if key == "ndvi":
+    if key == "ndvi" and doc["indices"]["ndvi"]:
         doc["indices"]["ndvi"]["mean"] = value
-    elif key == "ndmi":
-        doc["indices"]["ndmi"]["mean"] = value
-    elif key == "vci":
-        doc["analytics"]["vci_pct"] = value
-    elif key == "rain":
-        doc["weather"]["rain_60d_departure_pct"] = value
-    elif key == "stress":
-        doc["analytics"]["stress_level"] = value
+    elif key == "nbr" and doc["indices"]["nbr"]:
+        doc["indices"]["nbr"]["mean"] = value
+    elif key == "loss":
+        doc["change"]["cumulative_loss_fraction"] = value
+        doc["change"]["fractions_bps"]["cumulative"] = int(round(float(value) * 10_000))
+    elif key == "status":
+        doc["change"]["status"] = value
     else:
-        raise ValueError("tamper key must be one of ndvi, ndmi, vci, rain, stress")
+        raise ValueError("tamper key must be one of ndvi, nbr, loss, status")
     return doc
 
 
@@ -73,10 +72,10 @@ def verify_record(record_id, network=None, recompute=False, tamper=None, log=Non
         except ChainError as exc:
             report.add(f"Connect to {network}", False, str(exc))
             return report
-        registry, _ = contracts(w3, deployment)
+        registry = contracts(w3, deployment)[0]
         batch_id = registry.functions.batchIdByRoot(bytes.fromhex(root[2:])).call()
         if not report.add("Root anchored on-chain", batch_id != 0,
-                          f"FieldProofRegistry {registry.address} on {network}: batch #{batch_id}"):
+                          f"CanopyProofRegistry {registry.address} on {network}: batch #{batch_id}"):
             return report
         info = batch_info(registry, batch_id)
         report.add("On-chain manifest hash matches", info["manifestHash"] == manifest_hash, info["manifestHash"][:18] + "...")
@@ -101,17 +100,17 @@ def verify_record(record_id, network=None, recompute=False, tamper=None, log=Non
 
 
 def _recompute(doc):
-    """Re-read the same Sentinel-2 scene and recompute the plot statistics from scratch."""
+    """Re-read the same Sentinel-2 scene and recompute the cell statistics from scratch."""
     import httpx
 
-    from .plots import get_plot
     from .sentinel import process_item
+    from .sites import get_site
 
-    plot = get_plot(doc["plot"]["plot_id"])
+    site = get_site(doc["site"]["site_id"])
     item = httpx.get(doc["satellite"]["item_url"], timeout=60).raise_for_status().json()
-    fresh = process_item(item, plot["geometry"])
+    fresh = process_item(item, site["geometry"])
     same = (fresh["pixel_digest"] == doc["processing"]["pixel_digest"]
-            and fresh["ndvi"] == doc["indices"]["ndvi"] and fresh["ndmi"] == doc["indices"]["ndmi"]
+            and fresh["ndvi"] == doc["indices"]["ndvi"] and fresh["nbr"] == doc["indices"]["nbr"]
             and fresh["quality"] == doc["quality"])
     detail = (f"NDVI mean {fresh['ndvi']['mean'] if fresh['ndvi'] else None} vs "
               f"{doc['indices']['ndvi']['mean'] if doc['indices']['ndvi'] else None}; "

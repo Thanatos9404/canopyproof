@@ -1,0 +1,28 @@
+{
+ "schema": "canopyproof.batch/1",
+ "batch_name": "2022-03",
+ "period_start": "2022-03-20T19:02:51Z",
+ "period_end": "2022-03-20T19:02:51Z",
+ "period_start_unix": 1647802971,
+ "period_end_unix": 1647802971,
+ "record_count": 1,
+ "merkle_root": "0xc3aa7ca753af95417e9156cfcf5113dffb743a1f3c9f03f51c100d015d3a0dfe",
+ "leaf_encoding": "keccak256(bytes.concat(keccak256(abi.encode(CanopyProofRegistry.Observation))))",
+ "tree": "sorted leaves, sorted-pair keccak256, odd node promoted (OpenZeppelin MerkleProof compatible)",
+ "leaves": [
+  "0xc3aa7ca753af95417e9156cfcf5113dffb743a1f3c9f03f51c100d015d3a0dfe"
+ ],
+ "records": [
+  {
+   "record_id": "KE-STAND-01:S2B_T10TFM_20220320T190033_L2A",
+   "document_hash": "0xa7c5bff33a38b143efdff83ef76ba48e5ef2d0aebf2b84c3945b1bd3bb1249ac",
+   "leaf": "0xc3aa7ca753af95417e9156cfcf5113dffb743a1f3c9f03f51c100d015d3a0dfe"
+  }
+ ],
+ "sites": [
+  "KE-STAND-01"
+ ],
+ "processing_version": "canopyproof-s2-v1",
+ "analytics_version": "canopyproof-change-v1",
+ "software": "canopyproof 0.2.0"
+}

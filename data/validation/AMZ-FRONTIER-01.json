@@ -1,0 +1,30 @@
+{
+ "site_id": "AMZ-FRONTIER-01",
+ "source": "Hansen et al. (2013) Global Forest Change v1.12 (2000-2024), UMD/Google, CC BY 4.0",
+ "source_url": "https://storage.googleapis.com/earthenginepartners-hansen/GFC-2024-v1.12/Hansen_GFC-2024-v1.12_lossyear_00N_060W.tif",
+ "method": "Hansen ~30 m pixels inside the cell and inside CanopyProof's baseline forest mask. A Hansen pixel counts as loss if its loss year is 2019-2024; a CanopyProof pixel counts if its loss was confirmed (two consecutive disturbed looks) between 2019-01-01 and 2024-12-31.",
+ "pixels_compared": 1225,
+ "hansen_loss_pixels": 693,
+ "canopyproof_confirmed_pixels": 957,
+ "agreeing_pixels": 640,
+ "precision": 0.669,
+ "recall": 0.924,
+ "hansen_loss_ha_by_year": {
+  "2019": 0.0,
+  "2020": 0.0,
+  "2021": 0.0,
+  "2022": 0.15,
+  "2023": 0.0,
+  "2024": 52.75
+ },
+ "canopyproof_confirmed_ha_by_first_year": {
+  "2019": 0.0,
+  "2020": 0.6,
+  "2021": 0.0,
+  "2022": 0.0,
+  "2023": 0.0,
+  "2024": 77.68,
+  "2025": 1.4,
+  "2026": 0.0
+ }
+}

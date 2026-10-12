@@ -1,0 +1,28 @@
+{
+ "site_id": "ACR189-01",
+ "text": "ACR189: coastal conifer stand (99.94 ha cell, 100.0 ha of baseline forest) in ACR189. Latest clear Sentinel-2 view: 2026-10-08, showing no sign of forest loss. Confirmed loss since the baseline: 1.0 ha (1.0% of the cell's forest). 140 clear looks since 2019-05-03 are anchored on-chain. Hansen Global Forest Change shows no 2019-2024 loss here; loss confirmed by CanopyProof in that period needs review.",
+ "disclaimer": "Satellite change detection is evidence for review, not proof of carbon loss. It does not assess additionality, baselines or leakage, and a 1 km cell samples a project rather than measuring it.",
+ "generated_by": "offline template",
+ "ai_generated": false,
+ "facts": {
+  "project": "ACR189",
+  "project_is_real": true,
+  "cell": "ACR189: coastal conifer stand",
+  "cell_area_ha": "99.94",
+  "forest_ha": "100.0",
+  "latest_date": "2026-10-08",
+  "latest_status": "healthy",
+  "confirmed_loss_ha": "1.04",
+  "confirmed_loss_share": "0.0104",
+  "first_reversal_date": null,
+  "clear_looks": 140,
+  "first_look": "2019-05-03",
+  "hansen_recall": null,
+  "hansen_precision": "0.000",
+  "documented_events": [],
+  "record_id": "ACR189-01:S2B_T10TDL_20261008T190756_L2A"
+ },
+ "facts_hash": "0xfda4c12d011221b2320fd70b5cd3f759854fce390db6cf2c27e52ecee305f4be",
+ "source_record": "ACR189-01:S2B_T10TDL_20261008T190756_L2A",
+ "created_at": "2026-10-12T20:36:51Z"
+}

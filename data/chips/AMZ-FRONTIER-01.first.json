@@ -1,0 +1,16 @@
+{
+ "site_id": "AMZ-FRONTIER-01",
+ "item_id": "S2B_T21MXN_20190701T140101_L2A",
+ "date": "2019-07-01",
+ "bounds": [
+  [
+   -7.092285706458415,
+   -55.36224494095959
+  ],
+  [
+   -7.077676230543885,
+   -55.34772336099961
+  ]
+ ],
+ "attribution": "Contains modified Copernicus Sentinel data"
+}

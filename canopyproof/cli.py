@@ -1,4 +1,4 @@
-"""Command line: `python -m fieldproof <command>` (or `fieldproof <command>` after `pip install -e .`)."""
+"""Command line: `python -m canopyproof <command>`."""
 import argparse
 import json
 import sys
@@ -10,68 +10,83 @@ try:
     from rasterio.errors import NotGeoreferencedWarning
 
     warnings.filterwarnings("ignore", category=NotGeoreferencedWarning)
-except Exception:  # rasterio is only needed for `fetch`
+except Exception:  # rasterio is only needed for fetch/validate
     pass
 
-DEFAULT_SEASONS = [
-    ("kharif-2023", "2023-06-01", "2023-10-31"),
-    ("kharif-2024", "2024-06-01", "2024-10-31"),
-    ("kharif-2025", "2025-06-01", "2025-10-31"),
-    ("kharif-2026", "2026-06-01", "2026-10-31"),
-]
+
+def _sites(args):
+    from .sites import load_sites
+
+    sites = load_sites()
+    if getattr(args, "site", None):
+        sites = [s for s in sites if s["site_id"] in args.site]
+        if not sites:
+            sys.exit(f"unknown site(s): {args.site}")
+    return sites
 
 
-def _plots(args):
-    from .plots import load_plots
+def _projects():
+    from .sites import load_projects
 
-    plots = load_plots()
-    if getattr(args, "plot", None):
-        plots = [p for p in plots if p["plot_id"] in args.plot]
-        if not plots:
-            sys.exit(f"unknown plot(s): {args.plot}")
-    return plots
+    return load_projects()
+
+
+def _relisting():
+    from .config import PROJECTS_FILE
+
+    return json.loads(PROJECTS_FILE.read_text(encoding="utf-8"))["relisting_demo"]
 
 
 def cmd_fetch(args):
-    from .sentinel import fetch_plot, load_observations, make_chip
-    from .weather import fetch_weather
+    from .sentinel import fetch_site
 
     until = args.until or datetime.now(timezone.utc).date().isoformat()
-    for plot in _plots(args):
-        if not args.skip_weather:
-            fetch_weather(plot, end=until)
-        if not args.skip_satellite:
-            fetch_plot(plot, args.since, until, workers=args.workers, history_per_month=args.history_per_month)
-        _chip(plot, load_observations(plot["plot_id"]), make_chip)
+    for site in _sites(args):
+        fetch_site(site, args.since, until, workers=args.workers, history_per_month=args.history_per_month)
+        _chip(site)
 
 
-def _chip(plot, obs_doc, make_chip):
+def _chip(site):
     import httpx
 
-    if not obs_doc:
+    from .config import S2_COLLECTION, STAC_API
+    from .sentinel import load_observations, make_chip
+
+    doc = load_observations(site["site_id"])
+    if not doc:
         return
-    clear = [o for o in obs_doc["observations"] if o["quality"]["status"] == "clear"
-             and float(o["quality"]["valid_fraction"]) > 0.95 and float(o["scene_cloud_cover_pct"]) < 10]
+    clear = [o for o in doc["observations"] if o["quality"]["status"] == "clear"
+             and float(o["quality"]["valid_fraction"]) > 0.97 and float(o["scene_cloud_cover_pct"]) < 10]
+    months = next(p["credit_batch"].get("monitoring_months") for p in _projects() if p["project_id"] == site["project_id"])
+    clear = [o for o in clear if not months or int(o["date"][5:7]) in months] or clear
     if not clear:
         return
-    from .config import S2_COLLECTION, STAC_API
-
-    item = httpx.get(f"{STAC_API}/collections/{S2_COLLECTION}/items/{clear[-1]['item_id']}", timeout=60).json()
-    meta = make_chip(plot, item)
-    print(f"  chip {plot['plot_id']} from {meta['date']}")
+    for name, obs in ((site["site_id"], clear[-1]), (site["site_id"] + ".first", clear[0])):
+        item = httpx.get(f"{STAC_API}/collections/{S2_COLLECTION}/items/{obs['item_id']}", timeout=60).json()
+        meta = make_chip(site, item, name=name)
+        print(f"  chip {name} from {meta['date']}")
 
 
 def cmd_chips(args):
-    from .sentinel import load_observations, make_chip
-
-    for plot in _plots(args):
-        _chip(plot, load_observations(plot["plot_id"]), make_chip)
+    for site in _sites(args):
+        _chip(site)
 
 
 def cmd_build(args):
     from .pipeline import build_all
 
-    build_all(_plots(args))
+    build_all(_sites(args), _projects())
+
+
+def cmd_validate(args):
+    from .hansen import validate_site
+    from .pipeline import site_documents
+
+    projects = {p["project_id"]: p for p in _projects()}
+    for site in _sites(args):
+        docs, summary, obs_doc = site_documents(site, projects[site["project_id"]])
+        if docs:
+            validate_site(site, obs_doc, summary)
 
 
 def cmd_deploy(args):
@@ -79,9 +94,8 @@ def cmd_deploy(args):
 
     w3, _ = connect("localhost", require_deployment=False)
     out = deploy_local(w3)
-    print(f"FieldProofRegistry       {out['contracts']['FieldProofRegistry']['address']}")
-    print(f"ParametricDroughtTrigger {out['contracts']['ParametricDroughtTrigger']['address']}")
-    print(f"attestor {out['roles']['attestor']}  relayer {out['accounts']['relayer']}")
+    for name, c in out["contracts"].items():
+        print(f"{name:22s} {c['address']}")
     print("wrote data/chain/localhost.json")
 
 
@@ -92,13 +106,12 @@ def cmd_anchor(args):
     anchor_all(w3, deployment, batches=args.batch, relayed=not args.direct)
 
 
-def cmd_programs(args):
-    from .chain import connect, run_drought_programs
+def cmd_integrity(args):
+    from .chain import connect, run_integrity
+    from .sites import load_sites
 
     w3, deployment = connect(args.network)
-    seasons = DEFAULT_SEASONS if not args.season else [tuple(s.split(",")) for s in args.season]
-    print(f"creating prototype drought programmes on {args.network}")
-    run_drought_programs(w3, deployment, _plots(args), seasons)
+    run_integrity(w3, deployment, _projects(), _relisting(), load_sites())
 
 
 def cmd_verify(args):
@@ -111,27 +124,26 @@ def cmd_verify(args):
 
 
 def cmd_records(args):
-    from .config import DATA
+    from .config import SERIES_DIR
 
-    for plot in _plots(args):
-        doc = json.loads((DATA / "series" / f"{plot['plot_id']}.json").read_text(encoding="utf-8"))
-        rows = [r for r in doc["series"] if (not args.stress or r["stress"] in args.stress)
+    for site in _sites(args):
+        doc = json.loads((SERIES_DIR / f"{site['site_id']}.json").read_text(encoding="utf-8"))
+        rows = [r for r in doc["series"] if (not args.status or r["status"] in args.status)
                 and (not args.since or r["date"] >= args.since)]
         for r in rows[-args.limit:]:
-            print(f"{r['record_id']:48s} {r['date']}  ndvi={r['ndvi'] or '-':>7}  vci={r['vci'] or '-':>5}  "
-                  f"rain60={r['rain60'] or '-':>6}%  {r['stress']}")
+            print(f"{r['record_id']:50s} {r['date']}  ndvi={r['ndvi'] or '-':>7}  nbr={r['nbr'] or '-':>7}  "
+                  f"loss={r['loss'] or '-':>6}  {r['status']}")
 
 
-def cmd_explain(args):
-    from .config import DATA
+def cmd_notes(args):
+    from .config import SERIES_DIR
     from .explain import explain
 
-    for plot in _plots(args):
-        doc = json.loads((DATA / "series" / f"{plot['plot_id']}.json").read_text(encoding="utf-8"))
-        for lang in args.lang:
-            note = explain(doc, lang=lang, use_llm=args.llm)
-            if note:
-                print(f"[{plot['plot_id']} {lang}] ({note['generated_by']})\n{note['text']}\n{note['disclaimer']}\n")
+    for site in _sites(args):
+        doc = json.loads((SERIES_DIR / f"{site['site_id']}.json").read_text(encoding="utf-8"))
+        note = explain(doc, use_llm=args.llm)
+        if note:
+            print(f"[{site['site_id']}] ({note['generated_by']})\n{note['text']}\n{note['disclaimer']}\n")
 
 
 def cmd_serve(args):
@@ -141,99 +153,100 @@ def cmd_serve(args):
 
 
 def cmd_demo(args):
-    """Deploy to the local node, build, anchor, run drought programmes and write field notes."""
-    from .chain import anchor_all, connect, deploy_local, run_drought_programs
-    from .config import DATA
+    """Build, deploy to the local node, anchor, run the integrity oracle and write notes."""
+    from .chain import anchor_all, connect, deploy_local, run_integrity
+    from .config import SERIES_DIR
     from .explain import explain
     from .pipeline import build_all
-    from .plots import load_plots
+    from .sites import load_sites
 
-    plots = load_plots()
-    print("1/5 building records and monthly Merkle batches from data/observations + data/weather")
-    build_all(plots)
+    sites, projects = load_sites(), _projects()
+    print("1/5 change analytics, canonical records and monthly Merkle batches")
+    build_all(sites, projects)
     print("2/5 deploying contracts to the local Hardhat node")
     w3, _ = connect("localhost", require_deployment=False)
     deploy_local(w3)
     w3, deployment = connect("localhost")
     print("3/5 signing and anchoring every batch")
     anchor_all(w3, deployment)
-    print("4/5 prototype parametric drought programmes (kharif seasons)")
-    run_drought_programs(w3, deployment, plots, DEFAULT_SEASONS)
-    print("5/5 field notes (offline template; add --llm to `explain` for Nebius)")
-    for plot in plots:
-        doc = json.loads((DATA / "series" / f"{plot['plot_id']}.json").read_text(encoding="utf-8"))
-        for lang in ("en", "hi"):
-            explain(doc, lang=lang, use_llm=False)
-    print("done. Next: `python -m fieldproof serve` and open http://127.0.0.1:8080 (API: /api/endpoints)")
+    print("4/5 credit batches, double-claim check, watchdog evidence, guarded ledger")
+    run_integrity(w3, deployment, projects, _relisting(), sites)
+    print("5/5 integrity notes (offline template; `notes --llm` uses Nebius)")
+    for site in sites:
+        path = SERIES_DIR / f"{site['site_id']}.json"
+        if path.exists():
+            explain(json.loads(path.read_text(encoding="utf-8")))
+    print("done. Next: `python -m canopyproof serve` and open http://127.0.0.1:8080")
 
 
 def main(argv=None):
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    parser = argparse.ArgumentParser(prog="fieldproof", description="Krishyak FieldProof: verifiable field climate records")
+    parser = argparse.ArgumentParser(prog="canopyproof",
+                                     description="CanopyProof: open, satellite-verified integrity monitoring for forest carbon credits")
     sub = parser.add_subparsers(dest="command", required=True)
+    nets = ["localhost", "sepolia", "amoy"]
 
-    p = sub.add_parser("fetch", help="download Sentinel-2 plot statistics and ERA5 weather (network)")
-    p.add_argument("--plot", nargs="*")
+    p = sub.add_parser("fetch", help="read Sentinel-2 cell rasters from Earth Search (network)")
+    p.add_argument("--site", nargs="*")
     p.add_argument("--since", default="2019-01-01")
     p.add_argument("--until")
     p.add_argument("--workers", type=int, default=8)
     p.add_argument("--history-per-month", type=int, default=3)
-    p.add_argument("--skip-weather", action="store_true")
-    p.add_argument("--skip-satellite", action="store_true")
     p.set_defaults(func=cmd_fetch)
 
-    p = sub.add_parser("chips", help="refresh the true-colour plot images for the dashboard")
-    p.add_argument("--plot", nargs="*")
+    p = sub.add_parser("chips", help="refresh the true-colour cell images (network)")
+    p.add_argument("--site", nargs="*")
     p.set_defaults(func=cmd_chips)
 
-    p = sub.add_parser("build", help="analytics, canonical records and monthly Merkle batches (offline)")
-    p.add_argument("--plot", nargs="*")
+    p = sub.add_parser("build", help="change analytics, canonical records and monthly Merkle batches (offline)")
+    p.add_argument("--site", nargs="*")
     p.set_defaults(func=cmd_build)
+
+    p = sub.add_parser("validate", help="compare confirmed loss with Hansen Global Forest Change (network)")
+    p.add_argument("--site", nargs="*")
+    p.set_defaults(func=cmd_validate)
 
     p = sub.add_parser("deploy", help="deploy contracts to the local Hardhat node")
     p.set_defaults(func=cmd_deploy)
 
     p = sub.add_parser("anchor", help="sign and anchor batches")
-    p.add_argument("--network", default="localhost", choices=["localhost", "sepolia", "amoy"])
+    p.add_argument("--network", default="localhost", choices=nets)
     p.add_argument("--batch", nargs="*", help="only these months, e.g. 2026-09")
     p.add_argument("--direct", action="store_true", help="attestor sends the tx instead of a relayer")
     p.set_defaults(func=cmd_anchor)
 
-    p = sub.add_parser("programs", help="prototype parametric drought programmes")
-    p.add_argument("--network", default="localhost", choices=["localhost", "sepolia", "amoy"])
-    p.add_argument("--plot", nargs="*")
-    p.add_argument("--season", nargs="*", help="label,YYYY-MM-DD,YYYY-MM-DD")
-    p.set_defaults(func=cmd_programs)
+    p = sub.add_parser("integrity", help="register credit batches, submit evidence, run the guarded ledger demo")
+    p.add_argument("--network", default="localhost", choices=nets)
+    p.set_defaults(func=cmd_integrity)
 
     p = sub.add_parser("verify", help="verify one record offline and against the chain")
     p.add_argument("record_id")
-    p.add_argument("--network", default="localhost", choices=["localhost", "sepolia", "amoy"])
+    p.add_argument("--network", default="localhost", choices=nets)
     p.add_argument("--offline", action="store_true", help="skip on-chain checks")
     p.add_argument("--recompute", action="store_true", help="re-read the Sentinel-2 scene and recompute")
-    p.add_argument("--tamper", help="simulate an edit, e.g. ndvi=0.9000")
+    p.add_argument("--tamper", help="simulate an edit, e.g. loss=0.0000 or ndvi=0.9000")
     p.add_argument("--json", action="store_true")
     p.set_defaults(func=cmd_verify)
 
     p = sub.add_parser("records", help="list record ids")
-    p.add_argument("--plot", nargs="*")
-    p.add_argument("--stress", nargs="*", choices=["alert", "watch", "normal", "insufficient_data"])
+    p.add_argument("--site", nargs="*")
+    p.add_argument("--status", nargs="*", choices=["reversal_suspected", "watch", "healthy", "insufficient_data"])
     p.add_argument("--since")
     p.add_argument("--limit", type=int, default=15)
     p.set_defaults(func=cmd_records)
 
-    p = sub.add_parser("explain", help="farmer-readable notes (offline template, or --llm via Nebius)")
-    p.add_argument("--plot", nargs="*")
-    p.add_argument("--lang", nargs="*", default=["en", "hi"], choices=["en", "hi"])
+    p = sub.add_parser("notes", help="plain-language integrity notes (offline template, or --llm via Nebius)")
+    p.add_argument("--site", nargs="*")
     p.add_argument("--llm", action="store_true")
-    p.set_defaults(func=cmd_explain)
+    p.set_defaults(func=cmd_notes)
 
     p = sub.add_parser("serve", help="JSON API + web app on http://127.0.0.1:8080")
     p.add_argument("--port", type=int, default=8080)
     p.add_argument("--verbose", action="store_true")
     p.set_defaults(func=cmd_serve)
 
-    p = sub.add_parser("demo", help="build + deploy + anchor + programmes + notes on the local node")
+    p = sub.add_parser("demo", help="build + deploy + anchor + integrity + notes on the local node")
     p.set_defaults(func=cmd_demo)
 
     args = parser.parse_args(argv)

@@ -1,0 +1,85 @@
+{
+ "schema": "canopyproof.batch/1",
+ "batch_name": "2021-03",
+ "period_start": "2021-03-03T19:13:11Z",
+ "period_end": "2021-03-30T19:02:50Z",
+ "period_start_unix": 1614798791,
+ "period_end_unix": 1617130970,
+ "record_count": 10,
+ "merkle_root": "0x1d431c62aaad77ec2285ef89dde4933a3fc3c024c204578219e0509b3a2deb8d",
+ "leaf_encoding": "keccak256(bytes.concat(keccak256(abi.encode(CanopyProofRegistry.Observation))))",
+ "tree": "sorted leaves, sorted-pair keccak256, odd node promoted (OpenZeppelin MerkleProof compatible)",
+ "leaves": [
+  "0x13def84a1bb310ee68b342be24ee7b24dc018989cd7b63edfe11fcda397fdfcf",
+  "0x166c2c2d2ad30763beb7d4ec9abb7980c88f0bd5b9a050bc6bc34a1f58b87dcb",
+  "0x324e2df84248e83abb3a93e0208787ca1702265859514ed283566f8c6ee4c415",
+  "0x462c25dc89b1537ab4f6832b96c61e9b2e5a9c838efe9b307aa364214a491d8e",
+  "0x58d7a15e2ed19b81e97cf6c31359750e33920357c7ed1d7fd08a45273710da22",
+  "0x81ad7a1c2abd3b9b95ef98cbb7948995db280482f4b0a017579220b6426de745",
+  "0xb4b267bae430fc2c271dcf76fedf1376c72eb060e784c0f63c221bdc87ce927a",
+  "0xb7950fbd3300d9cd8696643ed431d2ae38d21c8c681efe9af17e8233027b5f81",
+  "0xcb92b1e49b411bdb948d801e1ae336ec48f166bb56d7569553b953d9c77bc600",
+  "0xe5c104bf3351dec922c663b6f53220106d9e7e17d247386893939637301833b5"
+ ],
+ "records": [
+  {
+   "record_id": "ACR189-01:S2A_T10TDL_20210303T191159_L2A",
+   "document_hash": "0x54c91b9978ce2787dd25143fb147c0114dcf7714e40d2021094a185339585c04",
+   "leaf": "0x81ad7a1c2abd3b9b95ef98cbb7948995db280482f4b0a017579220b6426de745"
+  },
+  {
+   "record_id": "KE-FIRE-01:S2A_T10TFN_20210313T190616_L2A",
+   "document_hash": "0xe25835f280419be4c2c00cb0b54fc424aee8f39b56f06976bccc229326394989",
+   "leaf": "0x13def84a1bb310ee68b342be24ee7b24dc018989cd7b63edfe11fcda397fdfcf"
+  },
+  {
+   "record_id": "KE-STAND-01:S2A_T10TFM_20210313T190616_L2A",
+   "document_hash": "0x5f7006182a821806f7c3bb8f85296a5f02345c0dffb3efc5c676def649218ec1",
+   "leaf": "0x58d7a15e2ed19b81e97cf6c31359750e33920357c7ed1d7fd08a45273710da22"
+  },
+  {
+   "record_id": "ACR189-01:S2A_T10TDL_20210313T190616_L2A",
+   "document_hash": "0x003e7301fd6146a309f15f5d65462c73a4ac8edb0aedffe52f19e024650a6382",
+   "leaf": "0xb4b267bae430fc2c271dcf76fedf1376c72eb060e784c0f63c221bdc87ce927a"
+  },
+  {
+   "record_id": "ACR189-01:S2A_T10TDL_20210323T190614_L2A",
+   "document_hash": "0x7431f61c88a6a1b769937652d446e198821677e0eaf646ccadbfe33c53d87b23",
+   "leaf": "0xe5c104bf3351dec922c663b6f53220106d9e7e17d247386893939637301833b5"
+  },
+  {
+   "record_id": "AMZ-FRONTIER-01:S2A_T21MXN_20210327T140050_L2A",
+   "document_hash": "0x5396c8aadd5553a5fd8883a8fe996d2e555baac27d5e5e75c670f354a9b3dec9",
+   "leaf": "0xb7950fbd3300d9cd8696643ed431d2ae38d21c8c681efe9af17e8233027b5f81"
+  },
+  {
+   "record_id": "KE-FIRE-01:S2B_T10TFN_20210328T190811_L2A",
+   "document_hash": "0x0dfe53011e4f02b09597f4c98ff9f6d0c493267a629191f1a372a84f3433f53b",
+   "leaf": "0x462c25dc89b1537ab4f6832b96c61e9b2e5a9c838efe9b307aa364214a491d8e"
+  },
+  {
+   "record_id": "KE-STAND-01:S2B_T10TFM_20210328T190811_L2A",
+   "document_hash": "0x7160942e166f418ba3527bb2d547b873b5d411e3de0bb4f6c7d3475a34eb9d51",
+   "leaf": "0x324e2df84248e83abb3a93e0208787ca1702265859514ed283566f8c6ee4c415"
+  },
+  {
+   "record_id": "KE-FIRE-01:S2A_T10TFN_20210330T185619_L2A",
+   "document_hash": "0x2aa947842d50f9771d76df349e5db04d4a4f40e7acebcd67b96b28c94223db2b",
+   "leaf": "0xcb92b1e49b411bdb948d801e1ae336ec48f166bb56d7569553b953d9c77bc600"
+  },
+  {
+   "record_id": "KE-STAND-01:S2A_T10TFM_20210330T185619_L2A",
+   "document_hash": "0x768a3bd6ba2fe8fc0850e8cd04dc8ed45716cb7d97262fb75d428c672cf6fcba",
+   "leaf": "0x166c2c2d2ad30763beb7d4ec9abb7980c88f0bd5b9a050bc6bc34a1f58b87dcb"
+  }
+ ],
+ "sites": [
+  "ACR189-01",
+  "AMZ-FRONTIER-01",
+  "KE-FIRE-01",
+  "KE-STAND-01"
+ ],
+ "processing_version": "canopyproof-s2-v1",
+ "analytics_version": "canopyproof-change-v1",
+ "software": "canopyproof 0.2.0"
+}

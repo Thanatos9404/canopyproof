@@ -4,14 +4,18 @@ Source: Earth Search STAC API (Element 84), collection `sentinel-2-c1-l2a` (ESA 
 surface reflectance) on the AWS Open Data registry. Only the bytes around each monitoring cell are
 read, through HTTP range requests.
 
-Per acquisition and cell, on a common 20 m grid:
-  * NDVI = (B08 - B04) / (B08 + B04), with B04/B08 averaged 2x2 from 10 m
-  * NBR  = (B08 - B12) / (B08 + B12), the Normalized Burn Ratio
-  * a Scene Classification (SCL) mask: only class 4 (vegetation) and 5 (not vegetated) pixels are
-    used; clouds, shadows, cirrus, water, snow, saturated and no-data pixels are excluded
-  * a pixel digest (SHA-256 of the masked index rasters) so anyone can recompute and compare
-The masked rasters are cached (int16, x10^4) for per-pixel change detection in forest.py.
+Per acquisition and cell, on the native 20 m grid:
+  * NDVI = (B08 - B04) / (B08 + B04), with B04 and B08 averaged 2x2 from 10 m
+  * NBR  = (B08 - B12) / (B08 + B12), the Normalized Burn Ratio (B12 is native 20 m)
+  * a Scene Classification (SCL) mask that keeps land-surface classes 2 (dark area), 4 (vegetation),
+    5 (not vegetated) and 7 (unclassified) and drops no-data, saturated, cloud shadow, water, cloud,
+    cirrus and snow. Fresh burn scars are often labelled 2 or 7 by Sen2Cor, so masking those would
+    hide the very change this tool looks for; persistence checks absorb the extra noise.
+  * a pixel digest (SHA-256 of the masked index rasters) so anyone can recompute and compare.
+The masked rasters are cached as int16 (x10^4) for per-pixel change detection (forest.py).
+"""
 import hashlib
+import io
 import json
 import math
 import os
@@ -25,7 +29,7 @@ import numpy as np
 
 from . import PROCESSING_VERSION
 from .canonical import dec
-from .config import CHIPS_DIR, OBSERVATIONS_DIR, S2_COLLECTION, STAC_API
+from .config import CHIPS_DIR, OBSERVATIONS_DIR, RASTERS_DIR, S2_COLLECTION, STAC_API
 
 GDAL_ENV = {
     "GDAL_DISABLE_READDIR_ON_OPEN": "EMPTY_DIR",
@@ -39,24 +43,24 @@ GDAL_ENV = {
 for _k, _v in GDAL_ENV.items():
     os.environ.setdefault(_k, _v)
 
-VALID_SCL = (4, 5)  # vegetation, not-vegetated (bare soil)
+VALID_SCL = (2, 4, 5, 7)  # dark area, vegetation, not vegetated, unclassified (burn scars land in 2/7)
 CLOUD_SHADOW_SCL = (3, 8, 9, 10)  # cloud shadow, cloud medium/high probability, thin cirrus
 WATER_SCL = (6,)
 SNOW_SCL = (11,)
 MIN_VALID_FRACTION = 0.6
-MIN_VALID_PIXELS = 10
-MIN_VALID_PIXELS_20M = 4
-ASSETS = {"red": "B04", "nir": "B08", "swir16": "B11", "scl": "SCL"}
+MIN_VALID_PIXELS = 50
+NODATA_I16 = -32768
+ASSETS = {"red": "B04", "nir": "B08", "swir22": "B12", "scl": "SCL"}
 METHOD = {
     "processing_version": PROCESSING_VERSION,
     "source": "Earth Search STAC, sentinel-2-c1-l2a (ESA Collection 1, L2A surface reflectance)",
-    "ndvi": "(B08-B04)/(B08+B04), 10 m",
-    "ndmi": "(B08-B11)/(B08+B11), 20 m, B08 averaged 2x2",
+    "grid": "native 20 m Sentinel-2 grid; B04/B08 averaged 2x2 from 10 m",
+    "ndvi": "(B08-B04)/(B08+B04)",
+    "nbr": "(B08-B12)/(B08+B12)",
     "reflectance": "DN * scale + offset from STAC raster:bands (Collection 1: 0.0001, -0.1)",
-    "valid_scl_classes": [4, 5],
-    "pixel_rule": "pixel centre inside plot polygon",
+    "valid_scl_classes": [2, 4, 5, 7],
+    "pixel_rule": "20 m pixel centre inside the monitoring cell",
     "min_valid_fraction": "0.60",
-    "min_valid_pixels": MIN_VALID_PIXELS,
 }
 
 
@@ -67,7 +71,7 @@ class SceneError(RuntimeError):
 # ----------------------------------------------------------------------------- STAC search
 
 def search_items(geometry, start, end, max_cloud=70, client=None, log=None):
-    """All Sentinel-2 C1 L2A items intersecting the plot, newest last."""
+    """All Sentinel-2 C1 L2A items intersecting the cell, oldest first."""
     own = client is None
     client = client or httpx.Client(timeout=httpx.Timeout(60, connect=15))
     body = {
@@ -109,7 +113,7 @@ def search_items(geometry, start, end, max_cloud=70, client=None, log=None):
 
 
 def preferred_tile(items):
-    """Use one MGRS tile per plot so every acquisition samples the same pixel grid."""
+    """Use one MGRS tile per cell so every acquisition samples the same pixel grid."""
     counts = Counter(it["properties"].get("grid:code") for it in items)
     if not counts:
         return None
@@ -117,8 +121,8 @@ def preferred_tile(items):
     return sorted(code for code, n in counts.items() if n == best)[0]
 
 
-def select_items(items, today=None, history_per_month=2, recent_days=400):
-    """Keep every recent acquisition, and the clearest few per month for the multi-year baseline."""
+def select_items(items, today=None, history_per_month=3, recent_days=400):
+    """Keep every recent acquisition and the clearest few per month for the multi-year record."""
     today = today or datetime.now(timezone.utc).date()
     tile = preferred_tile(items)
     items = [it for it in items if it["properties"].get("grid:code") == tile]
@@ -152,80 +156,69 @@ def scale_offset(item, asset_key):
     return float(scale), float(offset)
 
 
-def _stats(values):
-    if values.size == 0:
-        return None
-    return {
-        "mean": dec(values.mean()),
-        "median": dec(np.median(values)),
-        "p10": dec(np.percentile(values, 10)),
-        "p90": dec(np.percentile(values, 90)),
-        "std": dec(values.std()),
-    }
-
-
-def _to_int16(index, valid):
-    out = np.full(index.shape, -32768, dtype="<i2")
-    out[valid] = np.rint(index[valid] * 10_000).astype("<i2")
+def to_i16(index):
+    out = np.full(index.shape, NODATA_I16, dtype="<i2")
+    ok = np.isfinite(index)
+    out[ok] = np.rint(np.clip(index[ok], -1, 1) * 10_000).astype("<i2")
     return out
 
 
-def compute_indices(red_dn, nir_dn, swir_dn, scl, inside10, inside20, scales):
-    """Pure function over aligned arrays: 10 m red/nir, 20 m swir/scl, plot masks for both grids."""
-    h20, w20 = scl.shape
-    if red_dn.shape != (2 * h20, 2 * w20) or nir_dn.shape != red_dn.shape or swir_dn.shape != scl.shape:
+def from_i16(arr):
+    out = arr.astype("float64") / 10_000
+    out[arr == NODATA_I16] = np.nan
+    return out
+
+
+def compute_cell(red_dn, nir_dn, swir_dn, scl, inside, scales):
+    """Pure function over aligned arrays: 10 m red/nir, 20 m swir22/scl, and the 20 m cell mask."""
+    h, w = scl.shape
+    if red_dn.shape != (2 * h, 2 * w) or nir_dn.shape != red_dn.shape or swir_dn.shape != scl.shape:
         raise SceneError("10 m and 20 m windows are not aligned")
-    (rs, ro), (ns, no), (ss, so) = scales["red"], scales["nir"], scales["swir16"]
-    red = red_dn.astype("float64") * rs + ro
-    nir = nir_dn.astype("float64") * ns + no
+    (rs, ro), (ns, no), (ss, so) = scales["red"], scales["nir"], scales["swir22"]
+
+    def agg(dn, s, o):
+        ok = (dn.reshape(h, 2, w, 2) > 0).all(axis=(1, 3))
+        return (dn.astype("float64") * s + o).reshape(h, 2, w, 2).mean(axis=(1, 3)), ok
+
+    red, red_ok = agg(red_dn, rs, ro)
+    nir, nir_ok = agg(nir_dn, ns, no)
     swir = swir_dn.astype("float64") * ss + so
-    scl10 = np.repeat(np.repeat(scl, 2, axis=0), 2, axis=1)
-
-    plot_px = int(inside10.sum())
-    if plot_px == 0:
-        raise SceneError("plot covers no 10 m pixel centres")
-    ok10 = (inside10 & np.isin(scl10, VALID_SCL) & (red_dn > 0) & (nir_dn > 0)
-            & (red >= 0) & (nir >= 0) & ((red + nir) > 1e-6))
+    cell_px = int(inside.sum())
+    if cell_px == 0:
+        raise SceneError("monitoring cell covers no 20 m pixel centres")
+    ok = (inside & np.isin(scl, VALID_SCL) & red_ok & nir_ok & (swir_dn > 0)
+          & (red >= 0) & (nir >= 0) & (swir >= 0) & ((red + nir) > 1e-6) & ((nir + swir) > 1e-6))
     with np.errstate(divide="ignore", invalid="ignore"):
-        ndvi = np.where(ok10, (nir - red) / (nir + red), np.nan)
-
-    nir20 = nir.reshape(h20, 2, w20, 2).mean(axis=(1, 3))
-    nir20_ok = (nir_dn.reshape(h20, 2, w20, 2) > 0).all(axis=(1, 3))
-    ok20 = (inside20 & np.isin(scl, VALID_SCL) & nir20_ok & (swir_dn > 0)
-            & (nir20 >= 0) & (swir >= 0) & ((nir20 + swir) > 1e-6))
-    with np.errstate(divide="ignore", invalid="ignore"):
-        ndmi = np.where(ok20, (nir20 - swir) / (nir20 + swir), np.nan)
-
-    valid = int(ok10.sum())
-    valid20 = int(ok20.sum())
-    frac = valid / plot_px
+        ndvi = np.where(ok, (nir - red) / (nir + red), np.nan)
+        nbr = np.where(ok, (nir - swir) / (nir + swir), np.nan)
+    valid = int(ok.sum())
+    frac = valid / cell_px
 
     def share(classes):
-        return dec(float((inside10 & np.isin(scl10, classes)).sum()) / plot_px)
+        return dec(float((inside & np.isin(scl, classes)).sum()) / cell_px)
 
-    clear = frac >= MIN_VALID_FRACTION and valid >= MIN_VALID_PIXELS
     quality = {
-        "status": "clear" if clear else "insufficient",
-        "plot_pixels_10m": plot_px,
-        "valid_pixels_10m": valid,
-        "valid_pixels_20m": valid20,
+        "status": "clear" if frac >= MIN_VALID_FRACTION and valid >= MIN_VALID_PIXELS else "insufficient",
+        "cell_pixels_20m": cell_px,
+        "valid_pixels_20m": valid,
         "valid_fraction": dec(frac),
         "cloud_shadow_fraction": share(CLOUD_SHADOW_SCL),
         "water_fraction": share(WATER_SCL),
         "snow_fraction": share(SNOW_SCL),
-        "unclassified_fraction": share((7,)),
-        "dark_or_defective_fraction": share((1, 2)),
         "nodata_fraction": share((0,)),
     }
-    digest = hashlib.sha256()
-    digest.update(_to_int16(ndvi, ok10).tobytes())
-    digest.update(_to_int16(ndmi, ok20).tobytes())
-    return {
-        "quality": quality,
-        "ndvi": _stats(ndvi[ok10]) if valid >= MIN_VALID_PIXELS else None,
-        "ndmi": _stats(ndmi[ok20]) if valid20 >= MIN_VALID_PIXELS_20M else None,
-        "pixel_digest": digest,
-    }
+    ndvi_i16, nbr_i16 = to_i16(ndvi), to_i16(nbr)
+    digest = hashlib.sha256(ndvi_i16.tobytes() + nbr_i16.tobytes())
+
+    def stats(v):
+        v = v[np.isfinite(v)]
+        if v.size < MIN_VALID_PIXELS:
+            return None
+        return {"mean": dec(v.mean()), "median": dec(np.median(v)), "p10": dec(np.percentile(v, 10)),
+                "p90": dec(np.percentile(v, 90))}
+
+    return {"quality": quality, "ndvi": stats(ndvi), "nbr": stats(nbr), "pixel_digest": digest,
+            "ndvi_i16": ndvi_i16, "nbr_i16": nbr_i16}
 
 
 # ----------------------------------------------------------------------------- scene reads
@@ -243,7 +236,7 @@ def _window_for(geom_utm, transform20, pad=1):
 
 
 def process_item(item, geometry):
-    """Read the plot window of one acquisition and compute its statistics."""
+    """Read the cell window of one acquisition; returns stats plus the int16 index rasters."""
     import rasterio
     from rasterio.features import geometry_mask
     from rasterio.warp import transform_geom
@@ -258,7 +251,7 @@ def process_item(item, geometry):
             w20 = _window_for(geom_utm, t20)
             scl = ds.read(1, window=w20, boundless=True, fill_value=0)
             wt20 = ds.window_transform(w20)
-        with rasterio.open(assets["swir16"]["href"]) as ds:
+        with rasterio.open(assets["swir22"]["href"]) as ds:
             if ds.transform != t20:
                 raise SceneError("SWIR grid differs from SCL grid")
             swir = ds.read(1, window=w20, boundless=True, fill_value=0)
@@ -269,14 +262,12 @@ def process_item(item, geometry):
                 if (ds.transform.c, ds.transform.f, ds.transform.a) != (t20.c, t20.f, t20.a / 2):
                     raise SceneError("10 m grid is not aligned with the 20 m grid")
                 bands10[key] = ds.read(1, window=w10, boundless=True, fill_value=0)
-                wt10 = ds.window_transform(w10)
-    inside10 = geometry_mask([geom_utm], out_shape=bands10["red"].shape, transform=wt10, invert=True)
-    inside20 = geometry_mask([geom_utm], out_shape=scl.shape, transform=wt20, invert=True)
-    scales = {k: scale_offset(item, k) for k in ("red", "nir", "swir16")}
-    result = compute_indices(bands10["red"], bands10["nir"], swir, scl, inside10, inside20, scales)
+    inside = geometry_mask([geom_utm], out_shape=scl.shape, transform=wt20, invert=True)
+    scales = {k: scale_offset(item, k) for k in ("red", "nir", "swir22")}
+    result = compute_cell(bands10["red"], bands10["nir"], swir, scl, inside, scales)
 
-    grid = {"crs": crs.to_string(), "window_transform_10m": [dec(v, 2) for v in tuple(wt10)[:6]],
-            "shape_10m": list(bands10["red"].shape)}
+    grid = {"crs": crs.to_string(), "window_transform_20m": [dec(v, 2) for v in tuple(wt20)[:6]],
+            "shape_20m": list(scl.shape)}
     digest = result.pop("pixel_digest")
     digest.update(json.dumps(grid, sort_keys=True).encode())
     props = item["properties"]
@@ -290,54 +281,93 @@ def process_item(item, geometry):
         "mgrs_tile": props.get("grid:code", "").replace("MGRS-", ""),
         "processing_baseline": props.get("s2:processing_baseline"),
         "scene_cloud_cover_pct": dec(props.get("eo:cloud_cover"), 2),
-        "assets": {ASSETS[k]: assets[k]["href"] for k in ("red", "nir", "swir16", "scl")},
+        "assets": {ASSETS[k]: assets[k]["href"] for k in ("red", "nir", "swir22", "scl")},
         "reflectance_scale_offset": {ASSETS[k]: [dec(s, 6), dec(o, 6)] for k, (s, o) in scales.items()},
         "grid": grid,
         **result,
+        "inside": inside,
         "pixel_digest": "sha256:" + digest.hexdigest(),
     }
 
 
-# ----------------------------------------------------------------------------- per-plot fetch
+# ----------------------------------------------------------------------------- per-site fetch
 
-def observations_path(plot_id):
-    return OBSERVATIONS_DIR / f"{plot_id}.json"
+def observations_path(site_id):
+    return OBSERVATIONS_DIR / f"{site_id}.json"
 
 
-def load_observations(plot_id):
-    path = observations_path(plot_id)
+def raster_path(site_id):
+    return RASTERS_DIR / f"{site_id}.npz"
+
+
+def load_observations(site_id):
+    path = observations_path(site_id)
+    return json.loads(path.read_text(encoding="utf-8")) if path.exists() else None
+
+
+def load_rasters(site_id):
+    """{"inside": bool[h,w], item_id: (ndvi_i16, nbr_i16)} from the compressed cache."""
+    path = raster_path(site_id)
     if not path.exists():
         return None
-    return json.loads(path.read_text(encoding="utf-8"))
+    with np.load(path) as z:
+        out = {"inside": z["inside"]}
+        for key in z.files:
+            if key.endswith("__ndvi"):
+                item = key[:-6]
+                out[item] = (z[key], z[item + "__nbr"])
+    return out
 
 
-def fetch_plot(plot, start, end, workers=8, max_cloud=70, history_per_month=2, recent_days=400, log=print):
-    existing = load_observations(plot["plot_id"]) or {}
+def save_rasters(site_id, rasters):
+    RASTERS_DIR.mkdir(parents=True, exist_ok=True)
+    arrays = {"inside": rasters["inside"]}
+    for item, value in rasters.items():
+        if item == "inside":
+            continue
+        arrays[item + "__ndvi"], arrays[item + "__nbr"] = value
+    buf = io.BytesIO()
+    np.savez_compressed(buf, **arrays)
+    raster_path(site_id).write_bytes(buf.getvalue())
+
+
+def fetch_site(site, start, end, workers=8, max_cloud=70, history_per_month=3, recent_days=400, log=print):
+    existing = load_observations(site["site_id"]) or {}
     known = {o["item_id"]: o for o in existing.get("observations", [])}
-    log(f"[{plot['plot_id']}] searching {start} .. {end}")
-    items = search_items(plot["geometry"], start, end, max_cloud=max_cloud, log=log)
+    rasters = load_rasters(site["site_id"]) or {}
+    log(f"[{site['site_id']}] searching {start} .. {end}")
+    items = search_items(site["geometry"], start, end, max_cloud=max_cloud, log=log)
     selected, tile = select_items(items, today=date.fromisoformat(end), history_per_month=history_per_month,
                                   recent_days=recent_days)
-    todo = [it for it in selected if it["id"] not in known]
+    todo = [it for it in selected if it["id"] not in known or it["id"] not in rasters]
     log(f"  tile {tile}: {len(selected)} acquisitions selected, {len(todo)} new to read")
-    failures = 0
-    done = 0
+    failures = done = 0
     with ThreadPoolExecutor(max_workers=workers) as pool:
-        futures = {pool.submit(process_item, it, plot["geometry"]): it for it in todo}
+        futures = {pool.submit(process_item, it, site["geometry"]): it for it in todo}
         for fut in as_completed(futures):
             it = futures[fut]
             try:
-                known[it["id"]] = fut.result()
+                obs = fut.result()
             except Exception as exc:  # network hiccup or unexpected scene: skip, never fabricate
                 failures += 1
                 log(f"  ! {it['id']}: {type(exc).__name__}: {str(exc)[:120]}")
+                continue
+            inside = obs.pop("inside")
+            ndvi, nbr = obs.pop("ndvi_i16"), obs.pop("nbr_i16")
+            if "inside" in rasters and rasters["inside"].shape != inside.shape:
+                failures += 1
+                log(f"  ! {it['id']}: grid shape changed, skipped")
+                continue
+            rasters["inside"] = inside
+            rasters[it["id"]] = (ndvi, nbr)
+            known[it["id"]] = obs
             done += 1
             if done % 25 == 0:
                 log(f"  {done}/{len(todo)} read")
     observations = sorted(known.values(), key=lambda o: o["observed_at"])
     out = {
-        "plot_id": plot["plot_id"],
-        "geometry_hash": plot["geometry_hash"],
+        "site_id": site["site_id"],
+        "geometry_hash": site["geometry_hash"],
         "stac_api": STAC_API,
         "collection": S2_COLLECTION,
         "mgrs_tile": tile,
@@ -346,21 +376,22 @@ def fetch_plot(plot, start, end, workers=8, max_cloud=70, history_per_month=2, r
         "observations": observations,
     }
     OBSERVATIONS_DIR.mkdir(parents=True, exist_ok=True)
-    observations_path(plot["plot_id"]).write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
+    observations_path(site["site_id"]).write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8")
+    save_rasters(site["site_id"], rasters)
     clear = sum(1 for o in observations if o["quality"]["status"] == "clear")
     log(f"  saved {len(observations)} acquisitions ({clear} clear), {failures} failed reads")
     return out
 
 
-def make_chip(plot, item, pad_m=120):
-    """True-colour PNG around the plot for the dashboard, plus its WGS84 bounds."""
+def make_chip(site, item, pad_m=300, name=None):
+    """True-colour PNG around the cell for the web app, plus its WGS84 bounds."""
     import rasterio
     from rasterio.warp import transform, transform_geom
     from rasterio.windows import Window
 
     with rasterio.Env(**GDAL_ENV):
         with rasterio.open(item["assets"]["visual"]["href"]) as ds:
-            geom = transform_geom("EPSG:4326", ds.crs, plot["geometry"])
+            geom = transform_geom("EPSG:4326", ds.crs, site["geometry"])
             xs = [p[0] for p in geom["coordinates"][0]]
             ys = [p[1] for p in geom["coordinates"][0]]
             t = ds.transform
@@ -375,15 +406,14 @@ def make_chip(plot, item, pad_m=120):
             x1, y1 = x0 + wt.a * win.width, y0 + wt.e * win.height
             lons, lats = transform(ds.crs, "EPSG:4326", [x0, x1], [y1, y0])
     CHIPS_DIR.mkdir(parents=True, exist_ok=True)
-    png = CHIPS_DIR / f"{plot['plot_id']}.png"
-    scale = 6
-    rgb = np.repeat(np.repeat(rgb, scale, axis=1), scale, axis=2)
+    stem = name or site["site_id"]
+    png = CHIPS_DIR / f"{stem}.png"
     with rasterio.open(png, "w", driver="PNG", width=rgb.shape[2], height=rgb.shape[1], count=3, dtype="uint8") as out:
         out.write(rgb)
-    for extra in (png.with_suffix(".png.aux.xml"),):
-        if extra.exists():
-            extra.unlink()
-    meta = {"plot_id": plot["plot_id"], "item_id": item["id"], "date": item["properties"]["datetime"][:10],
+    aux = png.with_suffix(".png.aux.xml")
+    if aux.exists():
+        aux.unlink()
+    meta = {"site_id": site["site_id"], "item_id": item["id"], "date": item["properties"]["datetime"][:10],
             "bounds": [[lats[0], lons[0]], [lats[1], lons[1]]],
             "attribution": "Contains modified Copernicus Sentinel data"}
     png.with_suffix(".json").write_text(json.dumps(meta, indent=1) + "\n", encoding="utf-8")

@@ -1,0 +1,120 @@
+{
+  "projects": [
+    {
+      "project_id": "ACR273",
+      "name": "Klamath East (ACR273)",
+      "registry": "American Carbon Registry, California compliance offset program",
+      "type": "Improved forest management (IFM)",
+      "country": "United States",
+      "region": "Klamath County, Oregon",
+      "boundary_source": "CarbonPlan, 'Simplified boundaries of forest projects participating in California's forest carbon offset program' (Zenodo 8259842, CC BY 4.0), from CARB / ACR public data",
+      "real_project": true,
+      "documented_events": [
+        {
+          "date": "2021-07",
+          "text": "The Bootleg Fire burned through nearly 100,000 acres of the project.",
+          "source": "https://carbonplan.org/blog/bootleg-fire-update"
+        },
+        {
+          "date": "2023-03",
+          "text": "Wildfire losses put live carbon below baseline, triggering termination and retirement of at least 1.14 million credits from California's buffer pool.",
+          "source": "https://carbonplan.org/blog/bootleg-fire-update"
+        },
+        {
+          "date": "2024",
+          "text": "The owner sought to re-list 87% of the same land as four new projects (ACR1025-ACR1028).",
+          "source": "https://carbonplan.org/blog/klamath-east-relisting"
+        }
+      ],
+      "credit_batch": {
+        "label": "ACR273 issued credits (illustrative vintage range)",
+        "vintage_start": 2015,
+        "vintage_end": 2020,
+        "issued_credits": 1140000,
+        "issued_note": "At least 1.14 million credits were issued (CarbonPlan, 2023). The 2015-2020 vintage range is illustrative.",
+        "baseline_start": "2019-01-01",
+        "baseline_end": "2020-12-31",
+        "monitoring_months": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "monitoring_months_note": "Snow-free season at ~1,500 m in the eastern Cascades."
+      }
+    },
+    {
+      "project_id": "ACR189",
+      "name": "ACR189",
+      "registry": "American Carbon Registry, California compliance offset program",
+      "type": "Forest offset project (California compliance program)",
+      "country": "United States",
+      "region": "Northern California coast range",
+      "boundary_source": "CarbonPlan, 'Simplified boundaries of forest projects participating in California's forest carbon offset program' (Zenodo 8259842, CC BY 4.0), from CARB / ACR public data",
+      "real_project": true,
+      "documented_events": [],
+      "credit_batch": {
+        "label": "ACR189 credits (illustrative)",
+        "vintage_start": 2016,
+        "vintage_end": 2021,
+        "issued_credits": 100000,
+        "issued_note": "Illustrative amount; not taken from the registry.",
+        "baseline_start": "2019-01-01",
+        "baseline_end": "2020-12-31",
+        "monitoring_months": [
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "monitoring_months_note": "Dry season on the north coast."
+      }
+    },
+    {
+      "project_id": "DEMO-AMZ",
+      "name": "Representative Amazon frontier cell",
+      "registry": "none (demonstration)",
+      "type": "Representative REDD+-style forest area (not a real project)",
+      "country": "Brazil",
+      "region": "Novo Progresso, Para",
+      "boundary_source": "Cell chosen by the authors; no project boundary",
+      "real_project": false,
+      "documented_events": [],
+      "credit_batch": {
+        "label": "Illustrative REDD+ batch",
+        "vintage_start": 2019,
+        "vintage_end": 2023,
+        "issued_credits": 50000,
+        "issued_note": "Illustrative amount for a demonstration batch.",
+        "baseline_start": "2019-01-01",
+        "baseline_end": "2020-12-31",
+        "monitoring_months": [
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "monitoring_months_note": "Amazon dry season, when clear Sentinel-2 views exist (and when fires occur)."
+      }
+    }
+  ],
+  "relisting_demo": {
+    "project_id": "ACR1026-DEMO",
+    "name": "Hypothetical re-listing over the Klamath East fire cell",
+    "note": "Modelled on the 2024 re-listing proposals. Uses the KE-FIRE-01 land cells to show the double-claim check; not a statement about ACR1026's actual boundary.",
+    "over_site": "KE-FIRE-01",
+    "rejected_vintages": [
+      2019,
+      2022
+    ],
+    "accepted_vintages": [
+      2024,
+      2026
+    ],
+    "issued_credits": 10000
+  }
+}

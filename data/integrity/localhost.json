@@ -1,0 +1,521 @@
+{
+ "network": "localhost",
+ "created_at": "2026-10-12T20:33:16Z",
+ "thresholds": {
+  "watch_bps": 200,
+  "reversal_bps": 500,
+  "max_evidence_age_days": 60
+ },
+ "credit_batches": [
+  {
+   "project_id": "ACR273",
+   "creditBatchId": 1,
+   "txHash": "0x7a12a2b0746da29e30c3106e54aa693882a83bf17816e1d46e2d2319120edb0f",
+   "vintages": [
+    2015,
+    2020
+   ],
+   "issued_credits": 1140000,
+   "sites": [
+    "KE-FIRE-01",
+    "KE-STAND-01"
+   ],
+   "land_cells": 10,
+   "gasUsed": 1941963,
+   "status": "reversal_suspected",
+   "oldest_observation": 1791658960,
+   "stale": false,
+   "indicative_affected_bps": 5027,
+   "sites_monitored": 2,
+   "indicative_affected_credits": 573078,
+   "buffer_review_flagged": true,
+   "retirement_check": 4,
+   "retirement_check_text": "reversal suspected: transfers frozen",
+   "evidence": [
+    {
+     "site_id": "KE-FIRE-01",
+     "record_id": "KE-FIRE-01:S2A_T10TFN_20190609T190103_L2A",
+     "observed_at": "2019-06-09T19:02:41Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 4,
+     "txHash": "0x36c9da65699e813d6d7fa77241e2ec1efe79cf61b7ea20018095587f5134c899",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-FIRE-01",
+     "record_id": "KE-FIRE-01:S2B_T10TFN_20210723T185617_L2A",
+     "observed_at": "2021-07-23T19:02:40Z",
+     "status": "watch",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 29,
+     "txHash": "0x6e44d70dbbac8cf456dfa79d45f576821b35ef22536acbac3fe5020107bd59be",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-FIRE-01",
+     "record_id": "KE-FIRE-01:S2A_T10TFN_20210807T185412_L2A",
+     "observed_at": "2021-08-07T19:02:41Z",
+     "status": "reversal_suspected",
+     "cumulative_loss_bps": 9896,
+     "registryBatchId": 30,
+     "txHash": "0x21f8548e032487b00239f99dd22222df872e8524698dff0af75628a9f825b373",
+     "buffer_pool_review_flagged": true
+    },
+    {
+     "site_id": "KE-FIRE-01",
+     "record_id": "KE-FIRE-01:S2C_T10TFN_20261010T185812_L2A",
+     "observed_at": "2026-10-10T19:02:40Z",
+     "status": "reversal_suspected",
+     "cumulative_loss_bps": 9924,
+     "registryBatchId": 82,
+     "txHash": "0x6bb609bcdb586b36231c2ed724b5d454c1ccf2578b6edaa4b2df859560f8ea8a",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2B_T10TFM_20190604T185537_L2A",
+     "observed_at": "2019-06-04T19:03:01Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 4,
+     "txHash": "0x7c6e488f9b194a90b67d78727da275e137337d3a56b21c79c65405f101f15503",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2B_T10TFM_20211014T191222_L2A",
+     "observed_at": "2021-10-14T19:12:50Z",
+     "status": "watch",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 32,
+     "txHash": "0x6d64c04ac42f990db5dd2f45b4b7a3f662cce1ee269126c940604c6edb2a98ea",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2A_T10TFM_20211016T190203_L2A",
+     "observed_at": "2021-10-16T19:02:58Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 32,
+     "txHash": "0xb37d72fe36a8990f2411f1bde09d3199e25b552917ca4126105c8369874fe1cd",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2B_T10TFM_20230603T185344_L2A",
+     "observed_at": "2023-06-03T19:02:56Z",
+     "status": "watch",
+     "cumulative_loss_bps": 57,
+     "registryBatchId": 42,
+     "txHash": "0x20ad990b659627740add8d839ea71e7af748eebb9344c928226f2497d535f9bc",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2B_T10TFM_20230616T190842_L2A",
+     "observed_at": "2023-06-16T19:12:54Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 57,
+     "registryBatchId": 42,
+     "txHash": "0x69de482e79d3244004cd8b7e57b12e755dd72d1526c4e420e8b4f6c2b39851ab",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2B_T10TFM_20250903T191229_L2A",
+     "observed_at": "2025-09-03T19:12:49Z",
+     "status": "watch",
+     "cumulative_loss_bps": 57,
+     "registryBatchId": 69,
+     "txHash": "0xfac943b5fbffe1fcc0a08665b68b1aa00a637c8e22beabac70739df960a7d9a0",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2C_T10TFM_20250905T185506_L2A",
+     "observed_at": "2025-09-05T19:03:10Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 57,
+     "registryBatchId": 69,
+     "txHash": "0x51a1ff9fb0474810b4dcb083994dc58ad759b9f4d852cb29f0b778809a9f17b9",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2C_T10TFM_20250918T190204_L2A",
+     "observed_at": "2025-09-18T19:13:02Z",
+     "status": "watch",
+     "cumulative_loss_bps": 57,
+     "registryBatchId": 69,
+     "txHash": "0x0d816b45d19fb558d36fd7171b28c4d03a3208e66545233280d6548c7a3b944b",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2B_T10TFM_20250923T190651_L2A",
+     "observed_at": "2025-09-23T19:12:49Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 57,
+     "registryBatchId": 69,
+     "txHash": "0x0199d5f1587445e579bfb0187dd742714423e2fdc54a7351c656546bb5354f6d",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2C_T10TFM_20251015T185754_L2A",
+     "observed_at": "2025-10-15T19:03:04Z",
+     "status": "watch",
+     "cumulative_loss_bps": 57,
+     "registryBatchId": 70,
+     "txHash": "0x52838f54b481b772285985e6486ddbebc7d9f22948ee11f9c4c4b0251cce24bc",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2A_T10TFM_20251017T185826_L2A",
+     "observed_at": "2025-10-17T19:03:07Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 57,
+     "registryBatchId": 70,
+     "txHash": "0xfbb093505c2d866fdbeb21555713b9ae88f433aff2ba53055e9a5cd297a12935",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2A_T10TFM_20260816T190827_L2A",
+     "observed_at": "2026-08-16T19:13:04Z",
+     "status": "watch",
+     "cumulative_loss_bps": 110,
+     "registryBatchId": 80,
+     "txHash": "0x35b2684ff00b608c2eefb68a8a61627f9c4e264409a23222be8213fc1b926760",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2B_T10TFM_20260819T190755_L2A",
+     "observed_at": "2026-08-19T19:12:45Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 110,
+     "registryBatchId": 80,
+     "txHash": "0x26512615ce55948eabb4f41953dd92a4e43fd085d6acec380c647109a7c54d68",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2C_T10TFM_20260824T191056_L2A",
+     "observed_at": "2026-08-24T19:12:46Z",
+     "status": "watch",
+     "cumulative_loss_bps": 126,
+     "registryBatchId": 80,
+     "txHash": "0x58735b65ce8dfc6e26bbe3794362f94c063ece5b06fc87df006eaf39f2feb7aa",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2B_T10TFM_20260829T190224_L2A",
+     "observed_at": "2026-08-29T19:12:46Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 130,
+     "registryBatchId": 80,
+     "txHash": "0xefb589c8180d13c5a7cb855123ede7770415010091299688d5b4fa4af60a6e06",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2A_T10TFM_20261002T185825_L2A",
+     "observed_at": "2026-10-02T19:03:06Z",
+     "status": "watch",
+     "cumulative_loss_bps": 130,
+     "registryBatchId": 82,
+     "txHash": "0x6feca27aebfe018b3b44083cea32ba8e6da3374682c6adb460cd761459742dbb",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2C_T10TFM_20261003T191044_L2A",
+     "observed_at": "2026-10-03T19:12:51Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 130,
+     "registryBatchId": 82,
+     "txHash": "0x2ad7d1af90270291285d95e124200d549e533872ea05ae8b21aadd8aca3575fb",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "KE-STAND-01",
+     "record_id": "KE-STAND-01:S2C_T10TFM_20261010T185812_L2A",
+     "observed_at": "2026-10-10T19:02:54Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 130,
+     "registryBatchId": 82,
+     "txHash": "0x90fb08c4540c6997f8027fa1524bb72b5d039f3114142120aad79f2b1d751415",
+     "buffer_pool_review_flagged": false
+    }
+   ]
+  },
+  {
+   "project_id": "ACR189",
+   "creditBatchId": 2,
+   "txHash": "0x48cf40525fa8e6d3a377fec932d39f1acffa8fe0d9b8b8894c1e64e2995c5887",
+   "vintages": [
+    2016,
+    2021
+   ],
+   "issued_credits": 100000,
+   "sites": [
+    "ACR189-01"
+   ],
+   "land_cells": 4,
+   "gasUsed": 898124,
+   "status": "healthy",
+   "oldest_observation": 1791486791,
+   "stale": false,
+   "indicative_affected_bps": 104,
+   "sites_monitored": 1,
+   "indicative_affected_credits": 1040,
+   "buffer_review_flagged": false,
+   "retirement_check": 0,
+   "retirement_check_text": "ok to retire",
+   "evidence": [
+    {
+     "site_id": "ACR189-01",
+     "record_id": "ACR189-01:S2A_T10TDL_20190503T190557_L2A",
+     "observed_at": "2019-05-03T19:13:15Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 3,
+     "txHash": "0x2cadcd31052ee84923a60c3c6156005eeeaafa6fe8d6676db020f38fd98ccca6",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "ACR189-01",
+     "record_id": "ACR189-01:S2A_T10TDL_20260627T190828_L2A",
+     "observed_at": "2026-06-27T19:13:28Z",
+     "status": "watch",
+     "cumulative_loss_bps": 104,
+     "registryBatchId": 78,
+     "txHash": "0x993a8c46a98f1a63d6f65fb2a4fcccc34f54d19a1aa50dd1aa4e45d6a9aa4ebd",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "ACR189-01",
+     "record_id": "ACR189-01:S2B_T10TDL_20260630T191006_L2A",
+     "observed_at": "2026-06-30T19:13:09Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 104,
+     "registryBatchId": 78,
+     "txHash": "0x455bc744bc46f908cb98abca48a98a85287f55d9bcd2069cd76496b41b19a073",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "ACR189-01",
+     "record_id": "ACR189-01:S2B_T10TDL_20261008T190756_L2A",
+     "observed_at": "2026-10-08T19:13:11Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 104,
+     "registryBatchId": 82,
+     "txHash": "0x0a860f93c24c4dafd47f8a842f073fbd6e9449126b37b7d917c7108a7fc5ef18",
+     "buffer_pool_review_flagged": false
+    }
+   ]
+  },
+  {
+   "project_id": "DEMO-AMZ",
+   "creditBatchId": 3,
+   "txHash": "0xf39980823f11238835262b4ecd79cd38b741ba9bff12943d79f4205eccf44c9e",
+   "vintages": [
+    2019,
+    2023
+   ],
+   "issued_credits": 50000,
+   "sites": [
+    "AMZ-FRONTIER-01"
+   ],
+   "land_cells": 1,
+   "gasUsed": 384797,
+   "status": "reversal_suspected",
+   "oldest_observation": 1791554681,
+   "stale": false,
+   "indicative_affected_bps": 7968,
+   "sites_monitored": 1,
+   "indicative_affected_credits": 39840,
+   "buffer_review_flagged": true,
+   "retirement_check": 4,
+   "retirement_check_text": "reversal suspected: transfers frozen",
+   "evidence": [
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20190621T140100_L2A",
+     "observed_at": "2019-06-21T14:04:37Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 4,
+     "txHash": "0xcc3d0e4a0765c8fc8b92a22c84bf038f41c72f9629ef2b58faed6ba108019b71",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2A_T21MXN_20190914T140051_L2A",
+     "observed_at": "2019-09-14T14:04:28Z",
+     "status": "watch",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 7,
+     "txHash": "0xc2c17b6c88863030954e55badd685c6157a86b86c574f810a0348ae363a5c2c7",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20190919T140051_L2A",
+     "observed_at": "2019-09-19T14:04:28Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 7,
+     "txHash": "0xd9bccad1b1205a46cdbca43f9f5c3bfff3c8446c8a7fd9145ee8ed4ee787ba44",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2A_T21MXN_20191024T140056_L2A",
+     "observed_at": "2019-10-24T14:04:32Z",
+     "status": "watch",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 8,
+     "txHash": "0x1745695d2cbaa15eafdf159458de2d2b933e5b93e4407a37a0a0c033fd745b7b",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20200615T140054_L2A",
+     "observed_at": "2020-06-15T14:04:32Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 0,
+     "registryBatchId": 16,
+     "txHash": "0x8c11a8b9a676239f9ae907bc4dbc69a57c0531b30c82b099cd61f1ce4811bb66",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20201003T140312_L2A",
+     "observed_at": "2020-10-03T14:04:33Z",
+     "status": "watch",
+     "cumulative_loss_bps": 60,
+     "registryBatchId": 20,
+     "txHash": "0xc5319cdb8909bebc6ddf7aa4c5d212d232173a17bfd712e7ffa8eff9f2852830",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20201023T140055_L2A",
+     "observed_at": "2020-10-23T14:04:33Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 60,
+     "registryBatchId": 20,
+     "txHash": "0x887a6f26696b1baa49afb998326a24d2a9d779c0478953cbca9e0db27dc97957",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20211028T140053_L2A",
+     "observed_at": "2021-10-28T14:04:31Z",
+     "status": "watch",
+     "cumulative_loss_bps": 60,
+     "registryBatchId": 32,
+     "txHash": "0x6da14f2d8cac1ce48b7bd4b44a68ee0e27078e57a1b8dcd7806a6c756108b03b",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2A_T21MXN_20230605T140010_L2A",
+     "observed_at": "2023-06-05T14:04:33Z",
+     "status": "healthy",
+     "cumulative_loss_bps": 60,
+     "registryBatchId": 42,
+     "txHash": "0x1c86185ad2fe614940729a50630468a2f5c456e1642fdfd3b8024bcb95d91b9d",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20240803T135703_L2A",
+     "observed_at": "2024-08-03T14:04:31Z",
+     "status": "watch",
+     "cumulative_loss_bps": 160,
+     "registryBatchId": 56,
+     "txHash": "0x9b755db946b79b0401bd18471420b82aca7b3de1e9b1c51a96e3959feca84bf5",
+     "buffer_pool_review_flagged": false
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2B_T21MXN_20240813T135706_L2A",
+     "observed_at": "2024-08-13T14:04:33Z",
+     "status": "reversal_suspected",
+     "cumulative_loss_bps": 840,
+     "registryBatchId": 56,
+     "txHash": "0x671089213bbe108385af7d55a098863b009d4427b21b67c509b930ab5de525e0",
+     "buffer_pool_review_flagged": true
+    },
+    {
+     "site_id": "AMZ-FRONTIER-01",
+     "record_id": "AMZ-FRONTIER-01:S2A_T21MXN_20261009T140219_L2A",
+     "observed_at": "2026-10-09T14:04:41Z",
+     "status": "reversal_suspected",
+     "cumulative_loss_bps": 7968,
+     "registryBatchId": 82,
+     "txHash": "0x791d62e6c15bdd53ecdd7015fa494018cff7a675e2a99ec878afd328fc7b5c76",
+     "buffer_pool_review_flagged": false
+    }
+   ]
+  }
+ ],
+ "relisting_demo": {
+  "project_id": "ACR1026-DEMO",
+  "note": "Modelled on the 2024 re-listing proposals. Uses the KE-FIRE-01 land cells to show the double-claim check; not a statement about ACR1026's actual boundary.",
+  "over_site": "KE-FIRE-01",
+  "overlapping": {
+   "vintages": [
+    2019,
+    2022
+   ],
+   "accepted": false,
+   "error": "LandAlreadyClaimed",
+   "values": [
+    "0x9f768d567e0b074377568b085fe4feee48e2917ee3ffbae0c26364711e9312e7",
+    2019,
+    1
+   ]
+  },
+  "later_vintages": {
+   "vintages": [
+    2024,
+    2026
+   ],
+   "accepted": true,
+   "creditBatchId": 4,
+   "txHash": "0x8a4170e60d90024868d7b5efd69dd0fac8d7b58a61a52ae2a952e2a48a24d405"
+  }
+ },
+ "ledger_demo": [
+  {
+   "creditBatchId": 1,
+   "project_id": "ACR273",
+   "retired": false,
+   "error": "IntegrityHold",
+   "check": 4,
+   "reason": "reversal suspected: transfers frozen"
+  },
+  {
+   "creditBatchId": 2,
+   "project_id": "ACR189",
+   "retired": true,
+   "txHash": "0x438e8fbad7f1b9d7a7ae4744f0f2939b0b32556378948f724b29852cbe6cf00b"
+  },
+  {
+   "creditBatchId": 3,
+   "project_id": "DEMO-AMZ",
+   "retired": false,
+   "error": "IntegrityHold",
+   "check": 4,
+   "reason": "reversal suspected: transfers frozen"
+  }
+ ]
+}

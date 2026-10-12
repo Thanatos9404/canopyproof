@@ -1,0 +1,16 @@
+{
+ "site_id": "ACR189-01",
+ "item_id": "S2A_T10TDL_20190503T190557_L2A",
+ "date": "2019-05-03",
+ "bounds": [
+  [
+   40.908378250403615,
+   -123.72609000490212
+  ],
+  [
+   40.92299939433524,
+   -123.70712892969662
+  ]
+ ],
+ "attribution": "Contains modified Copernicus Sentinel data"
+}

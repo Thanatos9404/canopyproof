@@ -1,4 +1,5 @@
-"""End-to-end against a throw-away Hardhat node: Python leaves/proofs must satisfy the Solidity code.
+"""End-to-end against a throw-away Hardhat node: Python leaves/proofs must satisfy the Solidity code,
+and the integrity oracle must reach the same verdict as the off-chain analytics.
 
 Skipped automatically when contracts/node_modules or compiled artifacts are missing.
 Run only these with `pytest -m chain`; skip them with `pytest -m "not chain"`.
@@ -9,16 +10,15 @@ import shutil
 import socket
 import subprocess
 import time
-from datetime import date
 
 import pytest
 
-from fieldproof.config import ARTIFACTS_DIR, CONTRACTS_DIR
+from canopyproof.config import ARTIFACTS_DIR, CONTRACTS_DIR
 
 pytestmark = pytest.mark.chain
 
 NPX = shutil.which("npx.cmd") or shutil.which("npx")
-READY = NPX and (CONTRACTS_DIR / "node_modules").exists() and (ARTIFACTS_DIR / "FieldProofRegistry.sol").exists()
+READY = NPX and (CONTRACTS_DIR / "node_modules").exists() and (ARTIFACTS_DIR / "CanopyProofRegistry.sol").exists()
 
 
 def _free_port():
@@ -56,70 +56,69 @@ def node():
 
 @pytest.fixture()
 def env(node, tmp_path, monkeypatch):
-    import fieldproof.chain as chain
-    import fieldproof.config as config
-    import fieldproof.records as records
+    import canopyproof.chain as chain
+    import canopyproof.config as config
+    import canopyproof.records as records
 
     monkeypatch.setattr(chain, "LOCAL_RPC", node)
     for mod in (chain, records, config):
         monkeypatch.setattr(mod, "BATCHES_DIR", tmp_path / "batches", raising=False)
     for mod in (chain, config):
         monkeypatch.setattr(mod, "CHAIN_DIR", tmp_path / "chain", raising=False)
-    monkeypatch.setattr(config, "PROGRAMS_DIR", tmp_path / "programs")
-    from synthetic import PLOT, Weather, observations
+    monkeypatch.setattr(config, "INTEGRITY_DIR", tmp_path / "integrity")
+    from synthetic import BASELINE, MONTHS, SITE, scenes
 
-    from fieldproof.analytics import analyze
-    from fieldproof.records import build_batches, build_document
+    from canopyproof.forest import analyze_site
+    from canopyproof.records import build_batches, build_document
 
-    obs = observations(start=date(2019, 1, 3))
-    docs = [build_document(PLOT, o, a) for o, a in zip(obs, analyze(obs, Weather()))]
-    docs = [d for d in docs if d["observed_at"] >= "2026-06"]
+    obs, rasters = scenes()
+    res, _ = analyze_site(obs, rasters, *BASELINE, monitoring_months=MONTHS)
+    docs = [build_document(SITE, o, a) for o, a in zip(obs, res)]
     build_batches(docs, out_dir=tmp_path / "batches", log=lambda *_: None)
     w3, _ = chain.connect("localhost", require_deployment=False)
     chain.deploy_local(w3)
     w3, deployment = chain.connect("localhost")
-    return chain, w3, deployment, docs, tmp_path
+    site = {**SITE, "land_cells": [{"key": "0x" + "12" * 32}, {"key": "0x" + "34" * 32}]}
+    project = {"project_id": SITE["project_id"], "project_key": SITE["project_key"], "sites": [site],
+               "credit_batch": {"vintage_start": 2018, "vintage_end": 2022, "issued_credits": 10_000}}
+    relist = {"project_id": "RELIST", "note": "test", "over_site": SITE["site_id"], "rejected_vintages": [2020, 2023],
+              "accepted_vintages": [2024, 2026], "issued_credits": 100}
+    return chain, w3, deployment, docs, project, relist, site
 
 
-def test_anchor_verify_tamper_and_trigger(env):
-    chain, w3, deployment, docs, tmp_path = env
-    from fieldproof.records import load_entries, observation_tuple
-    from fieldproof.signing import recover_leaf_signer
-    from fieldproof.verify import verify_record
+def test_anchor_verify_integrity_and_ledger(env):
+    chain, w3, deployment, docs, project, relist, site = env
+    from canopyproof.records import load_entries, observation_tuple
+    from canopyproof.signing import recover_leaf_signer
+    from canopyproof.verify import verify_record
 
     attestations = chain.anchor_all(w3, deployment, log=lambda *_: None)
     assert attestations and all(a["mode"].startswith("relayed") for a in attestations)
-    registry, trigger = chain.contracts(w3, deployment)
+    registry, oracle, _ = chain.contracts(w3, deployment)
 
     # Every Python-built leaf and proof is accepted by the Solidity verifier.
     for att in attestations:
         for e in load_entries(att["batch"]):
-            proof = [bytes.fromhex(p[2:]) for p in e["proof"]]
-            assert registry.functions.verifyObservation(att["batchId"], observation_tuple(e["leaf_fields"]), proof).call()
-            assert registry.functions.observationLeaf(observation_tuple(e["leaf_fields"])).call().hex() == e["leaf"][2:]
+            obs = observation_tuple(e["leaf_fields"])
+            assert registry.functions.verifyObservation(att["batchId"], obs, [bytes.fromhex(p[2:]) for p in e["proof"]]).call()
+            assert "0x" + registry.functions.observationLeaf(obs).call().hex() == e["leaf"]
             assert recover_leaf_signer(e["leaf"], att["recordSignatures"][e["leaf"]]) == deployment["roles"]["attestor"]
 
-    record_id = docs[-1]["record_id"]
-    report = verify_record(record_id, network="localhost")
-    assert report.ok, report.to_dict()
-    tampered = verify_record(record_id, network="localhost", tamper="ndvi=0.9999")
-    assert not tampered.ok
+    rid = next(d["record_id"] for d in docs if d["change"]["status"] == "reversal_suspected")
+    assert verify_record(rid, network="localhost").ok
+    assert not verify_record(rid, network="localhost", tamper="loss=0.0000").ok
 
-    # Anchoring the same root twice is refused on-chain (no double anchoring).
-    again = chain.anchor_all(w3, deployment, log=lambda *_: None)
+    # Anchoring the same roots again is refused on-chain (no double anchoring).
+    chain.anchor_all(w3, deployment, log=lambda *_: None)
     assert registry.functions.batchCount().call() == len(attestations)
-    assert [a["batchId"] for a in again] == [a["batchId"] for a in attestations]
 
-    plot = {"plot_id": "TEST-01", "plot_key": docs[0]["plot"]["plot_key"]}
-    out = chain.run_drought_programs(w3, deployment, [plot], [("kharif-2026", "2026-06-01", "2026-10-31")],
-                                     log=lambda *_: None)
-    program = out["programs"][0]
-    assert program["triggered"] and program["qualifyingCount"] == 2
-    assert json.loads((tmp_path / "programs" / "localhost.json").read_text())["programs"][0]["triggered"]
-
-    # Revoking a batch makes its records fail verification.
-    att = attestations[-1]
-    tx = registry.functions.revokeBatch(att["batchId"], "test").transact({"from": deployment["roles"]["admin"]})
-    w3.eth.wait_for_transaction_receipt(tx)
-    last = load_entries(att["batch"])[0]
-    assert not verify_record(last["record_id"], network="localhost").ok
+    out = chain.run_integrity(w3, deployment, [project], relist, [site], log=lambda *_: None)
+    cb = out["credit_batches"][0]
+    assert cb["status"] == "reversal_suspected" and cb["buffer_review_flagged"] is True
+    assert cb["indicative_affected_bps"] == 5000 and cb["indicative_affected_credits"] == 5000
+    statuses = [e["status"] for e in cb["evidence"]]
+    assert statuses[0] == "healthy" and "watch" in statuses and statuses[-1] == "reversal_suspected"
+    assert out["relisting_demo"]["overlapping"]["error"] == "LandAlreadyClaimed"
+    assert out["relisting_demo"]["later_vintages"]["accepted"] is True
+    assert out["ledger_demo"][0]["retired"] is False and out["ledger_demo"][0]["check"] == 4
+    assert json.loads((chain.CHAIN_DIR.parent / "integrity" / "localhost.json").read_text())["credit_batches"]

@@ -1,0 +1,32 @@
+{
+ "site_id": "KE-STAND-01",
+ "text": "Klamath East: unburned stand (99.89 ha cell, 98.56 ha of baseline forest) in Klamath East (ACR273). Latest clear Sentinel-2 view: 2026-10-10, showing no sign of forest loss. Confirmed loss since the baseline: 1.3 ha (1.3% of the cell's forest). 148 clear looks since 2019-06-04 are anchored on-chain. Hansen Global Forest Change shows no 2019-2024 loss here; loss confirmed by CanopyProof in that period needs review.",
+ "disclaimer": "Satellite change detection is evidence for review, not proof of carbon loss. It does not assess additionality, baselines or leakage, and a 1 km cell samples a project rather than measuring it.",
+ "generated_by": "offline template",
+ "ai_generated": false,
+ "facts": {
+  "project": "Klamath East (ACR273)",
+  "project_is_real": true,
+  "cell": "Klamath East: unburned stand",
+  "cell_area_ha": "99.89",
+  "forest_ha": "98.56",
+  "latest_date": "2026-10-10",
+  "latest_status": "healthy",
+  "confirmed_loss_ha": "1.28",
+  "confirmed_loss_share": "0.0130",
+  "first_reversal_date": null,
+  "clear_looks": 148,
+  "first_look": "2019-06-04",
+  "hansen_recall": null,
+  "hansen_precision": "0.000",
+  "documented_events": [
+   "The Bootleg Fire burned through nearly 100,000 acres of the project.",
+   "Wildfire losses put live carbon below baseline, triggering termination and retirement of at least 1.14 million credits from California's buffer pool.",
+   "The owner sought to re-list 87% of the same land as four new projects (ACR1025-ACR1028)."
+  ],
+  "record_id": "KE-STAND-01:S2C_T10TFM_20261010T185812_L2A"
+ },
+ "facts_hash": "0xb9215e65b1c4652d6f3abb6b16ae257e910f1e71698fbe8b888f763f1f3e9b0d",
+ "source_record": "KE-STAND-01:S2C_T10TFM_20261010T185812_L2A",
+ "created_at": "2026-10-12T20:36:51Z"
+}

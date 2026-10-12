@@ -1,0 +1,167 @@
+{
+  "type": "FeatureCollection",
+  "name": "canopyproof-monitoring-cells",
+  "description": "1 km x 1 km monitoring cells. Salts are public demo values; a registry would keep salts private if cell locations are sensitive.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "site_id": "KE-FIRE-01",
+        "project_id": "ACR273",
+        "name": "Klamath East: Bootleg Fire scar",
+        "role": "fire-affected sample",
+        "selection": "1 km cell inside the ACR273 boundary where Hansen GFC records 2021 tree-cover loss (Bootleg Fire, July 2021).",
+        "boundary_source": "CarbonPlan, 'Simplified boundaries of forest projects participating in California's forest carbon offset program' (Zenodo 8259842, CC BY 4.0), from CARB / ACR public data",
+        "cell_size_m": 1000,
+        "salt": "0xa45d5e330f77f20a417dafec28de08dcde50cf68a4b567646c4f266d6f230bc0"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -120.91596,
+              42.812611
+            ],
+            [
+              -120.903737,
+              42.812388
+            ],
+            [
+              -120.904041,
+              42.803389
+            ],
+            [
+              -120.916262,
+              42.803612
+            ],
+            [
+              -120.91596,
+              42.812611
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "site_id": "KE-STAND-01",
+        "project_id": "ACR273",
+        "name": "Klamath East: unburned stand",
+        "role": "unburned sample",
+        "selection": "1 km cell inside the ACR273 boundary with tree cover >= 30% and no Hansen GFC loss 2017-2024.",
+        "boundary_source": "CarbonPlan, 'Simplified boundaries of forest projects participating in California's forest carbon offset program' (Zenodo 8259842, CC BY 4.0), from CARB / ACR public data",
+        "cell_size_m": 1000,
+        "salt": "0x4b4062fbae200c1c9be9f808a3de9b9931be7bcf8836eaf3ace8dfcc2d211e72"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -121.641976,
+              42.392574
+            ],
+            [
+              -121.629829,
+              42.392429
+            ],
+            [
+              -121.630025,
+              42.383426
+            ],
+            [
+              -121.64217,
+              42.38357
+            ],
+            [
+              -121.641976,
+              42.392574
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "site_id": "ACR189-01",
+        "project_id": "ACR189",
+        "name": "ACR189: coastal conifer stand",
+        "role": "unburned sample",
+        "selection": "1 km cell inside the ACR189 boundary with tree cover >= 60% and no Hansen GFC loss 2015-2024.",
+        "boundary_source": "CarbonPlan, 'Simplified boundaries of forest projects participating in California's forest carbon offset program' (Zenodo 8259842, CC BY 4.0), from CARB / ACR public data",
+        "cell_size_m": 1000,
+        "salt": "0x43ffeb0066b5cbe6b57d8532811302005161821dffcacabc226464fac8a550db"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -123.722586,
+              40.920167
+            ],
+            [
+              -123.710711,
+              40.920241
+            ],
+            [
+              -123.710615,
+              40.911233
+            ],
+            [
+              -123.722488,
+              40.911159
+            ],
+            [
+              -123.722586,
+              40.920167
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "site_id": "AMZ-FRONTIER-01",
+        "project_id": "DEMO-AMZ",
+        "name": "Amazon frontier, Novo Progresso (PA)",
+        "role": "representative forest cell",
+        "selection": "Representative 1 km tropical forest cell near Novo Progresso, Para, Brazil (BR-163 frontier). Not a carbon project. Hansen GFC records 2024 tree-cover loss in about half of it.",
+        "boundary_source": "Cell chosen by the CanopyProof authors from Hansen GFC; no project boundary",
+        "cell_size_m": 1000,
+        "salt": "0xaaad81fdf678925e05394c4763659ef5c589b8baa06a1f78520f9bbff6187de6"
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              -55.359542,
+              -7.080495
+            ],
+            [
+              -55.35049,
+              -7.080463
+            ],
+            [
+              -55.350458,
+              -7.089505
+            ],
+            [
+              -55.35951,
+              -7.089537
+            ],
+            [
+              -55.359542,
+              -7.080495
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

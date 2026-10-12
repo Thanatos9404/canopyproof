@@ -1,0 +1,16 @@
+{
+ "site_id": "KE-FIRE-01",
+ "item_id": "S2C_T10TFN_20261010T185812_L2A",
+ "date": "2026-10-10",
+ "bounds": [
+  [
+   42.80095878592119,
+   -120.92007964697015
+  ],
+  [
+   42.815088491546774,
+   -120.89991338501274
+  ]
+ ],
+ "attribution": "Contains modified Copernicus Sentinel data"
+}
