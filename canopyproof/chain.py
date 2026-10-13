@@ -420,6 +420,8 @@ def ledger_demo(w3, deployment, results, log=print):
 def run_integrity(w3, deployment, projects, relist, sites, log=print):
     from .config import INTEGRITY_DIR
 
+    if deployment["chainId"] != 31337:
+        attestor_signer(w3, deployment)  # testnets: sign locally with the key from the git-ignored .env
     log("registering credit batches")
     batches = register_credit_batches(w3, deployment, projects, log=log)
     log("double-claim check")
