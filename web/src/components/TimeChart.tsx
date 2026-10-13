@@ -133,14 +133,18 @@ export function TimeChart({
               </linearGradient>
             ))}
         </defs>
-        {bands.map((b) => (
+        {bands.map((b) => {
+          const x0 = Math.max(PAD.left, x(b.from));
+          const x1 = Math.min(width - PAD.right, x(b.to));
+          return x1 <= x0 ? null : (
           <g key={b.label}>
-            <rect x={x(b.from)} y={PAD.top} width={Math.max(0, x(b.to) - x(b.from))} height={height - PAD.top - PAD.bottom} fill="var(--paper-2)" />
-            <text x={x(b.from) + 6} y={PAD.top + 12} className="fill-[var(--muted)] font-mono text-[10px] uppercase tracking-[0.08em]">
+            <rect x={x0} y={PAD.top} width={x1 - x0} height={height - PAD.top - PAD.bottom} fill="var(--paper-2)" />
+            <text x={x0 + 6} y={PAD.top + 12} className="fill-[var(--muted)] font-mono text-[10px] uppercase tracking-[0.08em]">
               {b.label}
             </text>
           </g>
-        ))}
+          );
+        })}
         {ticks.map((v) => (
           <g key={v}>
             <line x1={PAD.left} x2={width - PAD.right} y1={y(v)} y2={y(v)} stroke="var(--hair)" />
@@ -167,8 +171,8 @@ export function TimeChart({
           <path key={s.key} d={d} fill="none" stroke={s.colour} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
         ))}
         {showStatusMarkers &&
-          data.map((p) =>
-            p.status === "reversal_suspected" || p.status === "watch" ? (
+          data.map((p, i) =>
+            (p.status === "reversal_suspected" || p.status === "watch") && p.status !== data[i - 1]?.status ? (
               (() => {
                 const v = p.values[series[0].key];
                 if (v === null || v === undefined) return null;

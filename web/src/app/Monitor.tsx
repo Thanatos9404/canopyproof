@@ -151,7 +151,7 @@ function CellDetail({ d, view, setView }: { d: SiteDetail; view: View; setView: 
 
       <Panel
         title="Vegetation and burn signals"
-        description="Cell means for every clear look. Dots mark looks the rules flagged; the shaded band is the baseline period."
+        description="Cell means for every clear look. Dots mark where the status changed to watch or reversal; the shaded band is the baseline period."
         action={<Legend items={[{ label: "NDVI", colour: "var(--series-ndvi)" }, { label: "NBR", colour: "var(--series-nbr)" }]} />}
       >
         <TimeChart
@@ -173,7 +173,7 @@ function CellDetail({ d, view, setView }: { d: SiteDetail; view: View; setView: 
             .filter(([k]) => k === "watch" || k === "reversal_suspected")
             .map(([, m]) => m.label)
             .join(" and ")}{" "}
-          looks are marked on the NDVI line. A burn shows as NBR falling below zero.
+          transitions are marked on the NDVI line. A burn shows as NBR falling below zero.
         </p>
       </Panel>
 

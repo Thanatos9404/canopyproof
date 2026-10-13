@@ -1,6 +1,6 @@
 {
  "site_id": "AMZ-FRONTIER-01",
- "text": "Amazon frontier, Novo Progresso (PA) (100.43 ha cell, 100.0 ha of baseline forest) in Representative Amazon frontier cell. Latest clear Sentinel-2 view: 2026-10-09, showing a suspected reversal. Confirmed loss since the baseline: 79.7 ha (79.7% of the cell's forest). The reversal threshold was first crossed on 2024-08-13. 102 clear looks since 2019-06-21 are anchored on-chain. Against the independent Hansen Global Forest Change map (loss 2019-2024), CanopyProof found 92% of Hansen's loss pixels, and 67% of its own confirmed pixels agree.",
+ "text": "Amazon frontier, Novo Progresso (PA) (100.43 ha cell, 100.0 ha of baseline forest) in Representative Amazon frontier cell. Latest clear Sentinel-2 view: 2026-10-09, showing a suspected reversal. Confirmed loss since the baseline: 79.7 ha (79.7% of the cell's forest). The reversal threshold was first crossed on 2024-08-13. 102 clear looks since 2019-06-21 are anchored on-chain. Against the independent Hansen Global Forest Change map (loss 2019-2024), CanopyProof found 92.4% of Hansen's loss pixels, and 66.9% of its own confirmed pixels agree.",
  "disclaimer": "Satellite change detection is evidence for review, not proof of carbon loss. It does not assess additionality, baselines or leakage, and a 1 km cell samples a project rather than measuring it.",
  "generated_by": "offline template",
  "ai_generated": false,
@@ -24,5 +24,5 @@
  },
  "facts_hash": "0x12a61803235f8686846d9d94907a216a79f2e68984a05bb4ef0d6faab7e30e49",
  "source_record": "AMZ-FRONTIER-01:S2A_T21MXN_20261009T140219_L2A",
- "created_at": "2026-10-13T03:28:46Z"
+ "created_at": "2026-10-13T03:34:44Z"
 }

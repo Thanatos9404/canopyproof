@@ -65,7 +65,7 @@ def offline_note(f):
     precision = float(f["hansen_precision"]) if f["hansen_precision"] is not None else None
     if recall is not None and precision is not None:
         parts.append(f"Against the independent Hansen Global Forest Change map (loss 2019-2024), CanopyProof found "
-                     f"{recall:.0%} of Hansen's loss pixels, and {precision:.0%} of its own confirmed pixels agree.")
+                     f"{recall:.1%} of Hansen's loss pixels, and {precision:.1%} of its own confirmed pixels agree.")
     elif recall is None and precision is None:
         parts.append("The independent Hansen Global Forest Change map also shows no 2019-2024 loss here.")
     elif recall is None:
