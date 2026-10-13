@@ -36,3 +36,8 @@ Thumbs.db
 .idea/
 .vscode/
 data/integrity/localhost.json
+
+# Web app build output and dependencies
+web/node_modules/
+web/dist/
+web/*.tsbuildinfo

@@ -1,0 +1,110 @@
+/* CanopyProof project palette (DESIGN_SYSTEM.md, ClimateChain row): terracotta accent, earth and sky. */
+:root {
+  --accent: #b4532a;
+  --sky-top: #a9c7e8;
+  --sky-mid: #d3dde6;
+  --sky-bottom: #ebdcc6;
+
+  /* Integrity states. Always shown with an icon and a label, never colour alone. */
+  --st-healthy: #2f7d4f;
+  --st-watch: #a86a12;
+  --st-reversal: #b8322a;
+  --st-none: #757170;
+
+  /* Chart series (validated pairs from the dataviz reference palette). */
+  --series-ndvi: #2a78d6;
+  --series-nbr: #1baf7a;
+}
+
+.status-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  box-shadow: 0 0 0 2px var(--surface);
+}
+
+/* Maps: warm the neutral basemap toward the paper palette; keep imagery untouched. */
+.cp-map {
+  position: relative;
+  isolation: isolate;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--paper-2);
+}
+.cp-map .leaflet-container {
+  width: 100%;
+  height: 100%;
+  background: var(--paper-2);
+  font-family: var(--font-sans);
+}
+.cp-map .tiles-basemap {
+  filter: sepia(0.28) saturate(0.75) hue-rotate(-12deg) brightness(1.03) contrast(0.96);
+}
+.cp-map .leaflet-control-attribution {
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  color: var(--muted);
+  font-size: 10.5px;
+  border-radius: 8px 0 0 0;
+  padding: 2px 6px;
+}
+.cp-map .leaflet-control-attribution a {
+  color: var(--ink-2);
+}
+.cp-map .leaflet-control-zoom a {
+  color: var(--ink);
+  border-color: var(--hair) !important;
+}
+.cp-map .leaflet-tooltip.cp-tip {
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--hair);
+  border-radius: 10px;
+  box-shadow: var(--shadow-soft);
+  font-family: var(--font-display);
+  font-size: 12.5px;
+  padding: 6px 9px;
+}
+.cp-map .leaflet-tooltip.cp-tip::before {
+  display: none;
+}
+.pixelated {
+  image-rendering: pixelated;
+}
+
+/* Chart chrome */
+.chart-tip {
+  pointer-events: none;
+  position: absolute;
+  z-index: 10;
+  min-width: 168px;
+  background: var(--surface);
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  box-shadow: var(--shadow-soft);
+  padding: 8px 10px;
+  font-size: 12.5px;
+  color: var(--ink-2);
+}
+
+.skeleton {
+  background: linear-gradient(90deg, var(--paper-2) 0%, var(--paper-3) 50%, var(--paper-2) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 12px;
+}
+@keyframes shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+.mono-hash {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.01em;
+  word-break: break-all;
+}
