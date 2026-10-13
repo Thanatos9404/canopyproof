@@ -82,5 +82,4 @@ def write_series(site, project, docs, summary, cmap):
     out["confirmed_loss_ha"] = summary["confirmed_ha"]
     out["changemap"] = {**cmap, "url": f"/data/changemaps/{site['site_id']}.png"}
     out["series"] = rows
-    (SERIES_DIR / f"{site['site_id']}.json").write_text(json.dumps(out, separators=(",", ":")) + "\n", encoding="utf-8", newline="
-")
+    (SERIES_DIR / f"{site['site_id']}.json").write_text(json.dumps(out, separators=(",", ":")) + "\n", encoding="utf-8", newline="\n")

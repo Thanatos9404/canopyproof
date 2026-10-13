@@ -130,8 +130,7 @@ def deploy_local(w3, network="localhost"):
                       for n, c in zip(CONTRACT_NAMES, (registry, oracle, ledger))},
     }
     CHAIN_DIR.mkdir(parents=True, exist_ok=True)
-    deployment_path(network).write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8", newline="
-")
+    deployment_path(network).write_text(json.dumps(out, indent=2) + "\n", encoding="utf-8", newline="\n")
     for stale in list(BATCHES_DIR.glob(f"*/attestation.{network}.json")):
         stale.unlink()
     return out
@@ -216,8 +215,7 @@ def anchor_batch(w3, deployment, batch, signer, relayer=None, log=print):
         "recordSignatures": record_signatures,
         "anchoredAt": _now(),
     }
-    attestation_path(batch, network).write_text(json.dumps(attestation, indent=1) + "\n", encoding="utf-8", newline="
-")
+    attestation_path(batch, network).write_text(json.dumps(attestation, indent=1) + "\n", encoding="utf-8", newline="\n")
     log(f"  {batch}: {manifest['record_count']:3d} records -> batch #{event['batchId']} "
         f"(block {receipt.blockNumber}, gas {receipt.gasUsed})")
     return attestation
@@ -435,6 +433,5 @@ def run_integrity(w3, deployment, projects, relist, sites, log=print):
                           "max_evidence_age_days": MAX_EVIDENCE_AGE // 86400},
            "credit_batches": results, "relisting_demo": relisting, "ledger_demo": ledger}
     INTEGRITY_DIR.mkdir(parents=True, exist_ok=True)
-    (INTEGRITY_DIR / f"{deployment['network']}.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8", newline="
-")
+    (INTEGRITY_DIR / f"{deployment['network']}.json").write_text(json.dumps(out, indent=1) + "\n", encoding="utf-8", newline="\n")
     return out

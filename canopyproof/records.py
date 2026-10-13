@@ -160,18 +160,15 @@ def build_batches(documents, out_dir=BATCHES_DIR, log=print):
         manifest_hash = "0x" + keccak(canonical_bytes(manifest)).hex()
         batch_dir = out_dir / period
         batch_dir.mkdir(parents=True, exist_ok=True)
-        (batch_dir / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8", newline="
-")
-        (batch_dir / "records.json").write_text(json.dumps(entries, separators=(",", ":")) + "\n", encoding="utf-8", newline="
-")
+        (batch_dir / "manifest.json").write_text(json.dumps(manifest, indent=1) + "\n", encoding="utf-8", newline="\n")
+        (batch_dir / "records.json").write_text(json.dumps(entries, separators=(",", ":")) + "\n", encoding="utf-8", newline="\n")
         summaries.append({"batch": period, "records": len(entries), "merkle_root": tree.root,
                           "manifest_hash": manifest_hash})
     index = {
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "batches": summaries,
     }
-    (out_dir / "index.json").write_text(json.dumps(index, indent=1) + "\n", encoding="utf-8", newline="
-")
+    (out_dir / "index.json").write_text(json.dumps(index, indent=1) + "\n", encoding="utf-8", newline="\n")
     log(f"built {len(summaries)} monthly batches with {sum(s['records'] for s in summaries)} records")
     return summaries
 
