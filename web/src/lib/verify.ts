@@ -104,7 +104,7 @@ export async function verifyInBrowser(
   if (tamper) step({ step: "Tamper simulation", ok: null, detail: `local copy edited: ${tamper.field} = ${tamper.value}` });
 
   const dh = ethers.keccak256(ethers.toUtf8Bytes(canonical(doc)));
-  step({ step: "Document hash: keccak256 of canonical JSON", ok: dh === rec.document_hash, detail: dh });
+  step({ step: "Document hash: keccak256 of canonical JSON", ok: dh === rec.document_hash, detail: dh === rec.document_hash ? dh : `${dh}, but the leaf commits to ${rec.document_hash}` });
 
   const fields = leafFields(doc, dh);
   const coder = ethers.AbiCoder.defaultAbiCoder();
@@ -142,7 +142,7 @@ export async function verifyInBrowser(
     step({ step: "On-chain manifest hash matches", ok: b.manifestHash === rec.manifest_hash, detail: b.manifestHash });
     step({ step: "Batch not revoked", ok: !b.revoked, detail: b.revoked ? "revoked" : "active" });
     const onChain: boolean = await registry.verifyObservation(batchId, tuple, rec.proof);
-    step({ step: "Contract verifyObservation() returns true", ok: onChain, detail: "evaluated by the EVM via eth_call" });
+    step({ step: "Contract verifyObservation(batch, record, proof)", ok: onChain, detail: `returned ${onChain}, evaluated by the EVM via eth_call` });
     const sig = rec.anchor?.recordSignature;
     if (sig) {
       const signer = ethers.verifyMessage(ethers.getBytes(leaf), sig);

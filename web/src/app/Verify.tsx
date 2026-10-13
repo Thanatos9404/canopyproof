@@ -57,8 +57,9 @@ export function Verify({ data, recordId }: { data: AppData; recordId?: string })
         <Panel
           title="Pick a record"
           description="Every Sentinel-2 look is a signed, content-hashed record inside a monthly Merkle batch."
-          action={
-            sites.length ? (
+        >
+          {sites.length > 0 && (
+            <div className="mb-3 overflow-x-auto">
               <Segmented
                 id="verify-site"
                 value={siteId}
@@ -69,9 +70,8 @@ export function Verify({ data, recordId }: { data: AppData; recordId?: string })
                 }}
                 options={sites.slice(0, 4).map((s) => ({ value: s.site_id, label: s.site_id.replace(/-0\d$/, "") }))}
               />
-            ) : undefined
-          }
-        >
+            </div>
+          )}
           {detail.error ? (
             <ErrorState message={detail.error.message} onRetry={detail.retry} />
           ) : !detail.data ? (

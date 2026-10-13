@@ -22,7 +22,7 @@ const SOURCES = [
     licence: "CC BY 4.0",
     url: "https://zenodo.org/records/8259842",
   },
-  { name: "Basemap", who: "OpenStreetMap contributors and CARTO; Esri World Imagery", licence: "ODbL / CARTO and Esri terms, attribution shown on the map", url: "https://carto.com/attributions" },
+  { name: "Basemaps", who: "Esri World Light Gray Canvas (with OpenStreetMap contributors) and Esri World Imagery", licence: "Esri terms of use, attribution shown on the map", url: "https://www.esri.com/en-us/legal/terms/full-master-agreement" },
 ];
 
 const RULES = [

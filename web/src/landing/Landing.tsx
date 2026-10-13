@@ -203,8 +203,8 @@ export function Landing() {
         ]}
         legal={
           <span>
-            Contains modified Copernicus Sentinel data (2019-2026). Hansen/UMD/Google GFC and CarbonPlan boundaries under CC BY 4.0. Map tiles: OpenStreetMap
-            contributors, CARTO, Esri. Fonts are OFL. Code MIT, by Yashvardhan Thanvi.
+            Contains modified Copernicus Sentinel data (2019-2026). Hansen/UMD/Google GFC and CarbonPlan boundaries under CC BY 4.0. Map tiles: Esri, HERE, Garmin and OpenStreetMap
+            contributors. Fonts are OFL. Code MIT, by Yashvardhan Thanvi.
           </span>
         }
       />

@@ -16,6 +16,12 @@
   --series-nbr: #1baf7a;
 }
 
+/* Grid children must be allowed to shrink below their content (charts, maps, tables). */
+.surface,
+.paper-card {
+  min-width: 0;
+}
+
 .status-dot {
   display: inline-block;
   width: 8px;

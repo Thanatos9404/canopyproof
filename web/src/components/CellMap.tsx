@@ -8,10 +8,10 @@ export type MapOverlay = { url: string; bounds: Bounds; opacity?: number; pixela
 
 const BASEMAPS = {
   light: {
-    url: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    url: "https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}",
+    attribution: 'Tiles &copy; Esri, HERE, Garmin, &copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     className: "tiles-basemap",
-    maxZoom: 18,
+    maxZoom: 16,
   },
   imagery: {
     url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
@@ -24,7 +24,7 @@ const BASEMAPS = {
 const toLatLngs = (g: Polygon) => g.coordinates[0].map(([lon, lat]) => [lat, lon] as [number, number]);
 
 /**
- * Leaflet map restyled to the paper palette (free CARTO/OSM tiles, or Esri imagery), with cell
+ * Leaflet map restyled to the paper palette (Esri Light Gray Canvas or Esri imagery, attributed), with cell
  * outlines coloured by integrity status and optional Sentinel-2 / change-map image overlays.
  */
 export function CellMap({
@@ -67,7 +67,7 @@ export function CellMap({
     if (!map.current) return;
     tiles.current?.remove();
     const b = BASEMAPS[basemap];
-    tiles.current = L.tileLayer(b.url, { attribution: b.attribution, className: b.className, maxZoom: b.maxZoom, subdomains: "abcd" }).addTo(
+    tiles.current = L.tileLayer(b.url, { attribution: b.attribution, className: b.className, maxZoom: b.maxZoom }).addTo(
       map.current,
     );
     tiles.current.bringToBack();

@@ -99,7 +99,8 @@ function CellDetail({ d, view, setView }: { d: SiteDetail; view: View; setView: 
           className="lg:col-span-7"
           title={d.name}
           description={`${d.project.name} · ${d.area_ha} ha cell · ${d.role}`}
-          action={
+        >
+          <div className="mb-3 flex justify-end">
             <Segmented
               id="cell-view"
               value={view}
@@ -110,8 +111,7 @@ function CellDetail({ d, view, setView }: { d: SiteDetail; view: View; setView: 
                 { value: "loss", label: "Loss" },
               ]}
             />
-          }
-        >
+          </div>
           <CellMap
             features={[{ id: d.site_id, label: d.name, geometry: d.geometry, status }]}
             selected={d.site_id}

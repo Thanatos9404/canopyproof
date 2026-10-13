@@ -122,7 +122,7 @@ export function TimeChart({
         if (e.key === "ArrowLeft") setHover((h) => Math.max(0, (h ?? data.length) - 1));
       }}
     >
-      <svg width={width} height={height} className="block">
+      <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="block">
         <defs>
           {series
             .filter((s) => s.fill)
