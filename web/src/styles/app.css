@@ -114,3 +114,18 @@
   letter-spacing: 0.01em;
   word-break: break-all;
 }
+
+/* The kit's Nav CTA carries both `hidden` and the button's `inline-flex`; on phones the generated
+   utility order lets inline-flex win and the pill overflows a 375px screen. Keep it hidden there
+   (the menu sheet has the same CTA). Reported upstream to the kit. */
+@media (max-width: 767.98px) {
+  header > nav a.hidden {
+    display: none;
+  }
+}
+
+/* Decorative overflow (clouds, the tilting product frame mid-animation) must never widen the page. */
+html,
+body {
+  overflow-x: clip;
+}

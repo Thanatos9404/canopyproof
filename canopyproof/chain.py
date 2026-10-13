@@ -13,7 +13,7 @@ from .config import ALLOWED_CHAINS, ARTIFACTS_DIR, BATCHES_DIR, CHAIN_DIR, ROOT
 from .records import load_entries, load_manifest, observation_tuple
 from .signing import RpcSigner, batch_typed_data
 
-LOCAL_RPC = os.environ.get("FIELDPROOF_RPC_URL", "http://127.0.0.1:8545")
+LOCAL_RPC = os.environ.get("CANOPYPROOF_RPC_URL", "http://127.0.0.1:8545")
 
 
 class ChainError(RuntimeError):

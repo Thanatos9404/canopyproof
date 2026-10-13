@@ -1,4 +1,4 @@
-// Off-chain helpers mirroring canopyproof/merkle.py and fieldproof/records.py, so the
+// Off-chain helpers mirroring canopyproof/merkle.py and canopyproof/records.py, so the
 // Solidity side is tested against exactly the same leaf and tree construction.
 const { ethers } = require("hardhat");
 
