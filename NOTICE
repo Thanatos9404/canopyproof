@@ -1,0 +1,6 @@
+CanopyProof
+Copyright (c) 2026 Yashvardhan Thanvi
+
+The MIT licence in LICENSE covers the source code. Third-party data in data/ keeps its own licence: Copernicus Sentinel data terms
+(Sentinel-2), CC BY 4.0 (Hansen et al. Global Forest Change; CarbonPlan offset
+project boundaries). See README.md, "Data sources and licences".
