@@ -11,6 +11,8 @@ original satellite pixels.
 Built for the **IEEE ClimateChain Global Hackathon 2026**, track **Carbon Markets & Emissions
 Transparency**. Prototype on a local chain, ready for Sepolia or Polygon Amoy. No mainnet, no real funds.
 
+**Demo video:** https://youtu.be/9FBv9KQ4Ag8
+
 ![Landing page](docs/screenshots/landing-1440.png)
 
 ## The problem

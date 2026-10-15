@@ -72,7 +72,7 @@ python, solidity, openzeppelin, hardhat, web3.py, ethers.js, react, typescript, 
 ## Links
 
 - Code: `https://github.com/Thanatos9404/canopyproof` (create and make public before submitting)
-- Demo video: `<YouTube or Vimeo link>`
+- Demo video: https://youtu.be/9FBv9KQ4Ag8
 - Prototype: local demo (README "Quick start"); screenshots in `docs/screenshots/`
 
 ## Honest limits (paste into the description or the README link)
